@@ -73,7 +73,7 @@ Options:
 --allowrenames             Allow courses to be renamed: true or false (default)
 --standardise              Standardise category names: true (default) or false
 --createmissing            Create missing parents in the hierarchy: true or false (default)
---updatepassword           Update user existing password: false (default), true
+--updatepassword           Update existing user password: false (default), true
 
 
 Example:
@@ -81,7 +81,6 @@ Example:
        --file=./users.csv --delimiter=comma
 ";
 
-/*
 if ($unrecognized) {
     $unrecognized = implode("\n  ", $unrecognized);
     cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
@@ -92,7 +91,7 @@ if ($options['help']) {
     die();
 }
 
-echo "Moodle course category uploader running ...\n\n";
+echo "Moodle user uploader running ...\n\n";
 
 $processoroptions = array(
     'allowdeletes' => (is_bool($options['allowdeletes']) && $options['allowdeletes']
@@ -103,23 +102,33 @@ $processoroptions = array(
         ) || (core_text::strtolower($options['standardise']) === 'true'),
     'createmissing' => (is_bool($options['createmissing']) && $options['createmissing']
         ) || (core_text::strtolower($options['createmissing']) === 'true'),
+    'updatepassword' => (is_bool($options['updatepassword']) && $options['updatepassword']
+        ) || (core_text::strtolower($options['updatepassword']) === 'true'),
 );
 
 // Confirm that the mode is valid.
 $modes = array(
+    /*
     'createnew' => tool_uploadcoursecategory_processor::MODE_CREATE_NEW,
     'createall' => tool_uploadcoursecategory_processor::MODE_CREATE_ALL,
     'createorupdate' => tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE,
     'update' => tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY
+     */
+
+    'createnew' => 1,
+    'createall' => 2,
+    'createorupdate' => 3,
+    'update' => 4,
 );
 
 if (!isset($options['mode']) || !isset($modes[$options['mode']])) {
-    echo get_string('invalidmode', 'tool_uploadcoursecategory')."\n";
+    echo get_string('invalidmode', 'tool_uploaduser')."\n";
     echo $help;
     die();
 }
 $processoroptions['mode'] = $modes[$options['mode']];
 
+/*
 // Check that the update mode is valid.
 $updatemodes = array(
     'nothing' => tool_uploadcoursecategory_processor::UPDATE_NOTHING,
