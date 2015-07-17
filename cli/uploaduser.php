@@ -38,7 +38,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'help' => false,
     'mode' => '',
     'updatemode' => 'nothing',
-    'password' => 'generate',         # other option: field
+    'passwordmode' => 'generate',         # other option: field
     'file' => '',
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
@@ -55,7 +55,7 @@ array(
     'f' => 'file',
     'd' => 'delimiter',
     'e' => 'encoding',
-    'p' => 'password',
+    'p' => 'passwordmode',
 ));
 
 $help =
@@ -68,11 +68,10 @@ Options:
 -f, --file                 CSV file
 -d, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
--p, --password             Password creation: generate (default), field
---allowdeletes             Allow courses to be deleted: true or false (default)
---allowrenames             Allow courses to be renamed: true or false (default)
---standardise              Standardise category names: true (default) or false
---createmissing            Create missing parents in the hierarchy: true or false (default)
+-p, --passwordmode         Password creation mode: generate (default), field
+--allowdeletes             Allow users to be deleted: true or false (default)
+--allowrenames             Allow users to be renamed: true or false (default)
+--standardise              Standardise user names: true (default) or false
 --updatepassword           Update existing user password: false (default), true
 
 
@@ -108,17 +107,17 @@ $processoroptions = array(
 
 // Confirm that the mode is valid.
 $modes = array(
-    /*
-    'createnew' => tool_uploadcoursecategory_processor::MODE_CREATE_NEW,
-    'createall' => tool_uploadcoursecategory_processor::MODE_CREATE_ALL,
-    'createorupdate' => tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE,
-    'update' => tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY
-     */
+    'createnew' => tool_uploaduser_processor::MODE_CREATE_NEW,
+    'createall' => tool_uploaduser_processor::MODE_CREATE_ALL,
+    'createorupdate' => tool_uploaduser_processor::MODE_CREATE_OR_UPDATE,
+    'update' => tool_uploaduser_processor::MODE_UPDATE_ONLY
 
+    /*
     'createnew' => 1,
     'createall' => 2,
     'createorupdate' => 3,
     'update' => 4,
+     */
 );
 
 if (!isset($options['mode']) || !isset($modes[$options['mode']])) {
