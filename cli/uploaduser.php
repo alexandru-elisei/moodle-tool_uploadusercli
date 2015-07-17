@@ -106,6 +106,10 @@ $processoroptions = array(
         ) || (core_text::strtolower($options['standardise']) === 'true'),
     'updatepassword' => (is_bool($options['updatepassword']) && $options['updatepassword']
         ) || (core_text::strtolower($options['updatepassword']) === 'true'),
+    'allowsuspendoractivate' => (is_bool($options['allowsuspendoractivate']) && $options['allowsuspendoractivate']
+        ) || (core_text::strtolower($options['allowsuspendoractivate']) === 'true'),
+    'allowemailduplicates' => (is_bool($options['allowemailduplicates']) && $options['allowemailduplicates']
+        ) || (core_text::strtolower($options['allowemailduplicates']) === 'true'),
 );
 
 // Confirm that the mode is valid.
@@ -139,6 +143,18 @@ if (($processoroptions['mode'] === tool_uploaduser_processor::MODE_CREATE_OR_UPD
     die();
 }
 $processoroptions['updatemode'] = $updatemodes[$options['updatemode']];
+
+$passwordmodes = array(
+    'generate' => tool_uploaduser_processor::PASSWORD_MODE_GENERATE,
+    'field' => tool_uploaduser_processor::PASSWORD_MODE_FIELD, 
+);
+
+if (!isset($options['passwordmode']) || !isset($passwordmodes[$options['passwordmode']])) {
+    echo get_string('invalidpasswordmode', 'tool_uploaduser')."\n";
+    echo $help;
+    die();
+}
+$processoroptions['passwordmode'] = $passwordmodes[$options['passwordmode']];
 
 // File.
 if (!empty($options['file'])) {

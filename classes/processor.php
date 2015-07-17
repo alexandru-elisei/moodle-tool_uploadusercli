@@ -75,6 +75,16 @@ class tool_uploaduser_processor {
      */
     const UPDATE_MISSING_WITH_DATA_OR_DEFAULTS = 8;
 
+    /**
+     * During creation, generate password.
+     */
+    const PASSWORD_MODE_GENERATE = 9;
+
+    /**
+     * During creation, require password field from file.
+     */
+    const PASSWORD_MODE_FIELD = 10;
+
     /** @var int processor mode. */
     protected $mode;
 
@@ -154,7 +164,7 @@ class tool_uploaduser_processor {
         }
 
         if (isset($options['passwordmode'])) {
-            $this->paswordmode = $options['passwordmode'];
+            $this->passwordmode = $options['passwordmode'];
         }
 
         if (isset($options['allowsuspendoractivate'])) {
@@ -167,8 +177,6 @@ class tool_uploaduser_processor {
 
         $this->cir = $cir;
         $this->columns = $cir->get_columns();
-
-        //var_dump($this);
         /*
         $this->validate_csv();
         $this->reset();
