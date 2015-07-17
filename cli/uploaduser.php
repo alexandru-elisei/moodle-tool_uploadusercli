@@ -45,8 +45,9 @@ list($options, $unrecognized) = cli_get_params(array(
     'updatepassword' => false,
     'allowdeletes' => false,
     'allowrenames' => false,
+    'allowsuspendoractivate' => true,
+    'allowemailduplicates' => false,
     'standardise' => true,
-    'createmissing' => false
 ),
 array(
     'h' => 'help',
@@ -72,13 +73,17 @@ Options:
 --allowdeletes             Allow users to be deleted: true or false (default)
 --allowrenames             Allow users to be renamed: true or false (default)
 --standardise              Standardise user names: true (default) or false
---updatepassword           Update existing user password: false (default), true
+--updatepassword           Update existing user password: false (default) or true
+--allowsuspendoractivate   Allow suspending or activating of accounts: true (default) false
+--allowemailduplicates     Allow duplicate email addresses: true or false (default)
 
 
 Example:
 \$sudo -u www-data /usr/bin/php admin/tool/uploaduser/cli/uploaduser.php --mode=createnew \\
        --file=./users.csv --delimiter=comma
 ";
+
+var_dump($options);
 
 if ($unrecognized) {
     $unrecognized = implode("\n  ", $unrecognized);
@@ -99,8 +104,6 @@ $processoroptions = array(
         ) || (core_text::strtolower($options['allowrenames']) === 'true'),
     'standardise' => (is_bool($options['standardise']) && $options['standardise']
         ) || (core_text::strtolower($options['standardise']) === 'true'),
-    'createmissing' => (is_bool($options['createmissing']) && $options['createmissing']
-        ) || (core_text::strtolower($options['createmissing']) === 'true'),
     'updatepassword' => (is_bool($options['updatepassword']) && $options['updatepassword']
         ) || (core_text::strtolower($options['updatepassword']) === 'true'),
 );
@@ -111,13 +114,6 @@ $modes = array(
     'createall' => tool_uploaduser_processor::MODE_CREATE_ALL,
     'createorupdate' => tool_uploaduser_processor::MODE_CREATE_OR_UPDATE,
     'update' => tool_uploaduser_processor::MODE_UPDATE_ONLY
-
-    /*
-    'createnew' => 1,
-    'createall' => 2,
-    'createorupdate' => 3,
-    'update' => 4,
-     */
 );
 
 if (!isset($options['mode']) || !isset($modes[$options['mode']])) {
@@ -127,19 +123,18 @@ if (!isset($options['mode']) || !isset($modes[$options['mode']])) {
 }
 $processoroptions['mode'] = $modes[$options['mode']];
 
-/*
 // Check that the update mode is valid.
 $updatemodes = array(
-    'nothing' => tool_uploadcoursecategory_processor::UPDATE_NOTHING,
-    'dataonly' => tool_uploadcoursecategory_processor::UPDATE_ALL_WITH_DATA_ONLY,
-    'dataordefaults' => tool_uploadcoursecategory_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS,
-    'missingonly' => tool_uploadcoursecategory_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS
+    'nothing' => tool_uploaduser_processor::UPDATE_NOTHING,
+    'dataonly' => tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_ONLY,
+    'dataordefaults' => tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS,
+    'missingonly' => tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS
 );
 
-if (($processoroptions['mode'] === tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE ||
-        $processoroptions['mode'] === tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY)
+if (($processoroptions['mode'] === tool_uploaduser_processor::MODE_CREATE_OR_UPDATE ||
+        $processoroptions['mode'] === tool_uploaduser_processor::MODE_UPDATE_ONLY)
         && (!isset($options['updatemode']) || !isset($updatemodes[$options['updatemode']]))) {
-    echo get_string('invalideupdatemode', 'tool_uploadcoursecategory')."\n";
+    echo get_string('invalideupdatemode', 'tool_uploaduser')."\n";
     echo $help;
     die();
 }
@@ -150,7 +145,7 @@ if (!empty($options['file'])) {
     $options['file'] = realpath($options['file']);
 }
 if (!file_exists($options['file'])) {
-    echo get_string('invalidcsvfile', 'tool_uploadcategory')."\n";
+    echo get_string('invalidcsvfile', 'tool_uploaduser')."\n";
     echo $help;
     die();
 }
@@ -158,7 +153,7 @@ if (!file_exists($options['file'])) {
 // Encoding.
 $encodings = core_text::get_encodings();
 if (!isset($encodings[$options['encoding']])) {
-    echo get_string('invalidencoding', 'tool_uploadcategory')."\n";
+    echo get_string('invalidencoding', 'tool_uploaduser')."\n";
     echo $help;
     die();
 }
@@ -168,17 +163,19 @@ cron_setup_user();
 
 // Let's get started!
 $content = file_get_contents($options['file']);
-$importid = csv_import_reader::get_new_iid('uploadcoursecategory');
-$cir = new csv_import_reader($importid, 'uploadcoursecategory');
+$importid = csv_import_reader::get_new_iid('uploaduser');
+$cir = new csv_import_reader($importid, 'uploaduser');
 $readcount = $cir->load_csv_content($content, $options['encoding'], $options['delimiter']);
 if ($readcount === false) {
-    print_error('csvfileerror', 'tool_uploadcourse', '', $cir->get_error());
+    print_error('csvfileerror', 'tool_uploaduser', '', $cir->get_error());
 } else if ($readcount == 0) {
     print_error('csvemptyfile', 'error', '', $cir->get_error());
 }
+
 unset($content);
 
-$processor = new tool_uploadcoursecategory_processor($cir, $processoroptions);
+$processor = new tool_uploaduser_processor($cir, $processoroptions);
+/*
 $processor->execute();
  */
 
