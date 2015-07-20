@@ -107,10 +107,10 @@ class tool_uploaduser_processor {
     protected $updatepassword;
 
     /** @var bool allow suspending or activating of users. */
-    protected $allowsuspendoractivate;
+    protected $allowsuspends;
 
     /** @var bool allow email duplicates. */
-    protected $allowemailduplicates;
+    protected $noemailduplicates;
 
     /** @var csv_import_reader. */
     protected $cir;
@@ -167,12 +167,12 @@ class tool_uploaduser_processor {
             $this->passwordmode = $options['passwordmode'];
         }
 
-        if (isset($options['allowsuspendoractivate'])) {
-            $this->allowsuspendoractivate = $options['allowsuspendoractivate'];
+        if (isset($options['allowsuspends'])) {
+            $this->allowsuspends = $options['allowsuspends'];
         }
 
-        if (isset($options['allowemailduplicates'])) {
-            $this->allowemailduplicates = $options['allowemailduplicates'];
+        if (isset($options['noemailduplicates'])) {
+            $this->noemailduplicates = $options['noemailduplicates'];
         }
 
         $this->cir = $cir;
@@ -269,8 +269,8 @@ class tool_uploaduser_processor {
             'standardise'           => $this->standardise,
             'paswordmode'           => $this->passwordmode,
             'updatepassword'        => $this->updatepassword,
-            'allowsuspendoractivate'=> $this->allowsuspendoractivate,
-            'allowemailduplicates'  => $this->allowemailduplicates,
+            'allowsuspends'         => $this->allowsuspends,
+            'noemailduplicates'     => $this->noemailduplicates,
         );
         return  new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);
     }

@@ -45,8 +45,8 @@ list($options, $unrecognized) = cli_get_params(array(
     'updatepassword' => false,
     'allowdeletes' => false,
     'allowrenames' => false,
-    'allowsuspendoractivate' => true,
-    'allowemailduplicates' => false,
+    'allowsuspends' => true,
+    'noemailduplicates' => false,
     'standardise' => true,
 ),
 array(
@@ -74,8 +74,8 @@ Options:
 --allowrenames             Allow users to be renamed: true or false (default)
 --standardise              Standardise user names: true (default) or false
 --updatepassword           Update existing user password: false (default) or true
---allowsuspendoractivate   Allow suspending or activating of accounts: true (default) false
---allowemailduplicates     Allow duplicate email addresses: true or false (default)
+--allowsuspends            Allow suspending or activating of accounts: true (default) false
+--noemailduplicates        Do not allow duplicate email addresses: true (default) or false
 
 
 Example:
@@ -104,10 +104,10 @@ $processoroptions = array(
         ) || (core_text::strtolower($options['standardise']) === 'true'),
     'updatepassword' => (is_bool($options['updatepassword']) && $options['updatepassword']
         ) || (core_text::strtolower($options['updatepassword']) === 'true'),
-    'allowsuspendoractivate' => (is_bool($options['allowsuspendoractivate']) && $options['allowsuspendoractivate']
-        ) || (core_text::strtolower($options['allowsuspendoractivate']) === 'true'),
-    'allowemailduplicates' => (is_bool($options['allowemailduplicates']) && $options['allowemailduplicates']
-        ) || (core_text::strtolower($options['allowemailduplicates']) === 'true'),
+    'allowsuspends' => (is_bool($options['allowsuspends']) && $options['allowsuspends']
+        ) || (core_text::strtolower($options['allowsuspends']) === 'true'),
+    'noemailduplicates' => (is_bool($options['noemailduplicates']) && $options['noemailduplicates']
+        ) || (core_text::strtolower($options['noemailduplicates']) === 'true'),
 );
 
 // Confirm that the mode is valid.
