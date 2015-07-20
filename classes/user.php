@@ -142,7 +142,7 @@ class tool_uploaduser_user {
         $this->mode = $mode;
         $this->updatemode = $updatemode;
 
-        if (empty($rawdata['username'])) {
+        if (!empty($rawdata['username'])) {
             // Stripping whitespaces.
             $this->username = trim($rawdata['username']);
         }
@@ -216,6 +216,33 @@ class tool_uploaduser_user {
     }
 
     /**
+     * Return the user database entry, or null.
+     *
+     * @param string $username the username to use to check if the user exists.
+     * @param int $mnethostid the moodle net host id.
+     * @return bool
+     */
+    protected function exists($username = null, $mnethostid = null) {
+        global $DB;
+
+        if (is_null($username)) {
+            $username = $this->username;
+        }
+        if (is_null($mnethostid)) {
+            $mnethostid = $this->mnethostid;
+        }
+
+        /*
+        print "\nEXISTS()::username:\n";
+        var_dump($username);
+        print "mnethostid:\n";
+        var_dump($mnethostid);
+         */
+
+        return $DB->get_record('user', array('username' => $username, 'mnethostid' => $mnethostid));
+    }
+
+    /**
      * Validates and prepares the data.
      *
      * @return bool false is any error occured.
@@ -234,14 +261,12 @@ class tool_uploaduser_user {
             }
         }
 
-        /*
-        // Validate idnumber field.
-        if (isset($this->rawdata['idnumber']) && !is_numeric($this->rawdata['idnumber'])) {
-            $this->error('idnumbernotanumber', new lang_string('idnumbernotanumber',
+        // Validate id field.
+        if (isset($this->rawdata['id']) && !is_numeric($this->rawdata['id'])) {
+            $this->error('idnotanumber', new lang_string('idnotanumber',
                 'tool_uploaduser'));
             return false;
         }
-         */
 
         // Standardise username.
         if ($this->importoptions['standardise']) {
@@ -262,6 +287,8 @@ class tool_uploaduser_user {
             return false;
         }
 
+        $this->existing = $this->exists();
+
         /*
         // Validate parent hierarchy.
         $this->parentid = $this->prepare_parent();
@@ -271,7 +298,6 @@ class tool_uploaduser_user {
             return false;
         }
 
-        $this->existing = $this->exists();
 
         // Can we delete the category?
         if (!empty($this->options['deleted'])) {

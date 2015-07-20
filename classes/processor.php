@@ -221,7 +221,7 @@ class tool_uploaduser_processor {
             $data = $this->parse_line($line);
             $user = $this->get_user($data);
 
-            var_dump($user);
+            //var_dump($user);
 
             if ($user->prepare()) {
                 /*
