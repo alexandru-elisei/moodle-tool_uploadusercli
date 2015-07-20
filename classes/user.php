@@ -60,6 +60,9 @@ class tool_uploaduser_user {
     /** @var int the ID of the user that has been processed. */
     protected $id;
 
+    /** @var int the moodle net host id. */
+    protected $mnethostid;
+
     /** @var array containing options passed from the processor. */
     protected $importoptions = array();
 
@@ -123,6 +126,7 @@ class tool_uploaduser_user {
      * @param array $importoptions import options.
      */
     public function __construct($mode, $updatemode, $rawdata, $importoptions = array()) {
+        global $CFG;
         if ($mode !== tool_uploaduser_processor::MODE_CREATE_NEW &&
                 $mode !== tool_uploaduser_processor::MODE_CREATE_ALL &&
                 $mode !== tool_uploaduser_processor::MODE_CREATE_OR_UPDATE &&
@@ -138,10 +142,16 @@ class tool_uploaduser_user {
         $this->mode = $mode;
         $this->updatemode = $updatemode;
 
-        if (isset($rawdata['username'])) {
+        if (empty($rawdata['username'])) {
             // Stripping whitespaces.
             $this->username = trim($rawdata['username']);
         }
+        if (empty($rawdata['mnethostid'])) {
+            $this->mnethostid = $CFG->mnet_localhost_id;
+        } else {
+            $this->mnethostid = $rawdata['mnethostid'];
+        }
+
         $this->rawdata = $rawdata;
 
         // Extract user options.
@@ -228,20 +238,36 @@ class tool_uploaduser_user {
         // Validate idnumber field.
         if (isset($this->rawdata['idnumber']) && !is_numeric($this->rawdata['idnumber'])) {
             $this->error('idnumbernotanumber', new lang_string('idnumbernotanumber',
-                'tool_uploadcoursecategory'));
+                'tool_uploaduser'));
+            return false;
+        }
+         */
+
+        // Standardise username.
+        if ($this->importoptions['standardise']) {
+            $this->username = clean_param($this->username, PARAM_USERNAME);
+        }
+
+        // Validate username format
+        if ($this->username !== clean_param($this->username, PARAM_USERNAME)) {
+            $this->error('invalidusername', new lang_string('invalidusername',
+                'tool_uploaduser'));
             return false;
         }
 
-        // Standardise name
-        if ($this->importoptions['standardise']) {
-            $this->name = clean_param($this->name, PARAM_MULTILANG);
+        // Validate moodle net host id.
+        if (!is_numeric($this->mnethostid)) {
+            $this->error('mnethostidnotanumber', new lang_string('mnethostidnotanumber',
+                'tool_uploaduser'));
+            return false;
         }
 
+        /*
         // Validate parent hierarchy.
         $this->parentid = $this->prepare_parent();
         if ($this->parentid == -1) {
             $this->error('missingcategoryparent', new lang_string('missingcategoryparent',
-                'tool_uploadcoursecategory'));
+                'tool_uploaduser'));
             return false;
         }
 
@@ -251,11 +277,11 @@ class tool_uploaduser_user {
         if (!empty($this->options['deleted'])) {
             if (empty($this->existing)) {
                 $this->error('cannotdeletecategorynotexist', new lang_string('cannotdeletecategorynotexist',
-                    'tool_uploadcoursecategory'));
+                    'tool_uploaduser'));
                 return false;
             } else if (!$this->can_delete()) {
                 $this->error('categorydeletionnotallowed', new lang_string('categorydeletionnotallowed',
-                    'tool_uploadcoursecategory'));
+                    'tool_uploaduser'));
                 return false;
             }
 
@@ -268,20 +294,20 @@ class tool_uploaduser_user {
         // Can we create/update the course under those conditions?
         if ($this->existing) {
 
-            if ($this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_NEW) {
+            if ($this->mode === tool_uploaduser_processor::MODE_CREATE_NEW) {
                 $this->error('categoryexistsanduploadnotallowed',
-                    new lang_string('categoryexistsanduploadnotallowed', 'tool_uploadcoursecategory'));
+                    new lang_string('categoryexistsanduploadnotallowed', 'tool_uploaduser'));
                 return false;
             }
         } else {
             // If I cannot create the course, or I'm in update-only mode and I'm 
             // not renaming
             if (!$this->can_create() && 
-                    $this->mode === tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY &&
+                    $this->mode === tool_uploaduser_processor::MODE_UPDATE_ONLY &&
                     !isset($this->rawdata['oldname'])) {
                 $this->error('categorydoesnotexistandcreatenotallowed',
                     new lang_string('categorydoesnotexistandcreatenotallowed', 
-                        'tool_uploadcoursecategory'));
+                        'tool_uploaduser'));
                 return false;
             }
         }
@@ -301,7 +327,7 @@ class tool_uploaduser_user {
             if ($this->existing) {
                 $this->error('cannotrenamenamealreadyinuse',
                     new lang_string('cannotrenamenamealreadyinuse', 
-                        'tool_uploadcoursecategory'));
+                        'tool_uploaduser'));
                 return false;
             }
 
@@ -314,28 +340,28 @@ class tool_uploaduser_user {
             if ($oldparentid === -1) {
                 $this->error('oldcategoryhierarchydoesnotexist', 
                     new lang_string('coldcategoryhierarchydoesnotexist',
-                        'tool_uploadcoursecategory'));
+                        'tool_uploaduser'));
                 return false;
             } else if (!$this->can_update()) {
                 $this->error('canonlyrenameinupdatemode', 
-                    new lang_string('canonlyrenameinupdatemode', 'tool_uploadcoursecategory'));
+                    new lang_string('canonlyrenameinupdatemode', 'tool_uploaduser'));
                 return false;
             } else if (!$this->existing) {
                 $this->error('cannotrenameoldcategorynotexist',
                     new lang_string('cannotrenameoldcategorynotexist', 
-                        'tool_uploadcoursecategory'));
+                        'tool_uploaduser'));
                 return false;
             } else if (!$this->can_rename()) {
                 $this->error('categoryrenamingnotallowed',
                     new lang_string('categoryrenamingnotallowed', 
-                        'tool_uploadcoursecategory'));
+                        'tool_uploaduser'));
                 return false;
             } else if (isset($this->rawdata['idnumber'])) {
                 // If category id belongs to another category
                 if ($this->existing->idnumber !== $finaldata['idnumber'] &&
                         $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
                     $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
-                        'tool_uploadcoursecategory'));
+                        'tool_uploaduser'));
                     return false;
                 }
             }
@@ -345,13 +371,13 @@ class tool_uploaduser_user {
             $this->do = self::DO_UPDATE;
 
             $this->set_status('coursecategoryrenamed', new lang_string('coursecategoryrenamed', 
-                'tool_uploadcoursecategory', array('from' => $oldname, 'to' => $finaldata['name'])));
+                'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata['name'])));
 
             return true;
         }
 
         // If exists, but we only want to create categories, increment the name.
-        if ($this->existing && $this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_ALL) {
+        if ($this->existing && $this->mode === tool_uploaduser_processor::MODE_CREATE_ALL) {
             $original = $this->name;
             $this->name = cc_increment_name($this->name);
             // We are creating a new course category
@@ -359,7 +385,7 @@ class tool_uploaduser_user {
 
             if ($this->name !== $original) {
                 $this->set_status('coursecategoryrenamed',
-                    new lang_string('coursecategoryrenamed', 'tool_uploadcoursecategory',
+                    new lang_string('coursecategoryrenamed', 'tool_uploaduser',
                     array('from' => $original, 'to' => $this->name)));
                 if (isset($finaldata['idnumber'])) {
                     $originalidn = $finaldata['idnumber'];
@@ -372,34 +398,34 @@ class tool_uploaduser_user {
         if (!$this->existing && isset($finaldata['idnumber']) &&
                 $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
             $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
-                'tool_uploadcoursecategory'));
+                'tool_uploaduser'));
             return false;
         }
 
         // Ultimate check mode vs. existence.
         switch ($this->mode) {
-            case tool_uploadcoursecategory_processor::MODE_CREATE_NEW:
-            case tool_uploadcoursecategory_processor::MODE_CREATE_ALL:
+            case tool_uploaduser_processor::MODE_CREATE_NEW:
+            case tool_uploaduser_processor::MODE_CREATE_ALL:
                 if ($this->existing) {
                     $this->error('categoryexistsanduploadnotallowed',
                         new lang_string('categoryexistsanduploadnotallowed', 
-                            'tool_uploadcoursecategory'));
+                            'tool_uploaduser'));
                     return false;
                 }
                 break;
-            case tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY:
+            case tool_uploaduser_processor::MODE_UPDATE_ONLY:
                 if (!$this->existing) {
                     $this->error('categorydoesnotexistandcreatenotallowed',
                         new lang_string('categorydoesnotexistandcreatenotallowed',
-                            'tool_uploadcoursecategory'));
+                            'tool_uploaduser'));
                     return false;
                 }
                 // No break!
-            case tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE:
+            case tool_uploaduser_processor::MODE_CREATE_OR_UPDATE:
                 if ($this->existing) {
-                    if ($updatemode === tool_uploadcoursecategory_processor::UPDATE_NOTHING) {
+                    if ($updatemode === tool_uploaduser_processor::UPDATE_NOTHING) {
                         $this->error('updatemodedoessettonothing',
-                            new lang_string('updatemodedoessettonothing', 'tool_uploadcoursecategory'));
+                            new lang_string('updatemodedoessettonothing', 'tool_uploaduser'));
                         return false;
                     }
                 }
@@ -407,19 +433,19 @@ class tool_uploaduser_user {
             default:
                 // O_o Huh?! This should really never happen here!
                 $this->error('unknownimportmode', new lang_string('unknownimportmode', 
-                    'tool_uploadcoursecategory'));
+                    'tool_uploaduser'));
                 return false;
         }
 
         // Get final data.
         if ($this->existing) {
-            $missingonly = ($updatemode === tool_uploadcoursecategory_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
+            $missingonly = ($updatemode === tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
 
             // Make sure we are not trying to mess with the front page, though we should never get here!
             if ($finaldata['id'] == $SITE->id) {
                 $this->error('cannotupdatefrontpage', new lang_string('cannotupdatefrontpage', 
-                    'tool_uploadcoursecategory'));
+                    'tool_uploaduser'));
                 return false;
             }
 
