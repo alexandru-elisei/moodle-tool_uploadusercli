@@ -24,9 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
-require_once($CFG->dirroot . '/admin/tool/uploadcoursecategory/locallib.php');
 require_once($CFG->dirroot . '/course/lib.php');
-require_once($CFG->libdir . '/coursecatlib.php');
+require_once($CFG->libdir . '/moodlelib.php');
 
 /**
  * User class.
@@ -153,4 +152,288 @@ class tool_uploaduser_user {
         // Copy import options.
         $this->importoptions = $importoptions;
     }
+
+    /**
+     * Log an error
+     *
+     * @param string $code error code.
+     * @param lang_string $message error message.
+     * @return void
+     */
+    protected function error($code, lang_string $message) {
+        $this->errors[$code] = $message;
+    }
+    
+    /**
+     * Return the errors found.
+     *
+     * @return array
+     */
+    public function get_errors() {
+        return $this->errors;
+    }
+
+    /**
+     * Log a status
+     *
+     * @param string $code status code.
+     * @param lang_string $message status message.
+     * @return void
+     */
+    protected function set_status($code, lang_string $message) {
+        if (array_key_exists($code, $this->statuses)) {
+            throw new coding_exception('Status code already defined');
+        }
+        $this->statuses[$code] = $message;
+    }
+
+    /**
+     * Return whether there were errors with this user.
+     *
+     * @return bool
+     */
+    public function has_errors() {
+        return !empty($this->errors);
+    }
+
+    /**
+     * Return the errors found during preparation.
+     *
+     * @return array
+     */
+    public function get_statuses() {
+        return $this->statuses;
+    }
+
+    /**
+     * Validates and prepares the data.
+     *
+     * @return bool false is any error occured.
+     */
+    public function prepare() {
+        global $DB;
+
+        $this->prepared = true;
+        
+        // Checking mandatory fields.
+        foreach (self::$mandatoryfields as $key => $field) {
+            if (!isset($this->rawdata[$field])) {
+                $this->error('missingmandatoryfields', new lang_string('missingmandatoryfields',
+                    'tool_uploaduser'));
+                return false;
+            }
+        }
+
+        /*
+        // Validate idnumber field.
+        if (isset($this->rawdata['idnumber']) && !is_numeric($this->rawdata['idnumber'])) {
+            $this->error('idnumbernotanumber', new lang_string('idnumbernotanumber',
+                'tool_uploadcoursecategory'));
+            return false;
+        }
+
+        // Standardise name
+        if ($this->importoptions['standardise']) {
+            $this->name = clean_param($this->name, PARAM_MULTILANG);
+        }
+
+        // Validate parent hierarchy.
+        $this->parentid = $this->prepare_parent();
+        if ($this->parentid == -1) {
+            $this->error('missingcategoryparent', new lang_string('missingcategoryparent',
+                'tool_uploadcoursecategory'));
+            return false;
+        }
+
+        $this->existing = $this->exists();
+
+        // Can we delete the category?
+        if (!empty($this->options['deleted'])) {
+            if (empty($this->existing)) {
+                $this->error('cannotdeletecategorynotexist', new lang_string('cannotdeletecategorynotexist',
+                    'tool_uploadcoursecategory'));
+                return false;
+            } else if (!$this->can_delete()) {
+                $this->error('categorydeletionnotallowed', new lang_string('categorydeletionnotallowed',
+                    'tool_uploadcoursecategory'));
+                return false;
+            }
+
+            $this->do = self::DO_DELETE;
+            
+            // We only need the name and parent id for category deletion.
+            return true;
+        }
+
+        // Can we create/update the course under those conditions?
+        if ($this->existing) {
+
+            if ($this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_NEW) {
+                $this->error('categoryexistsanduploadnotallowed',
+                    new lang_string('categoryexistsanduploadnotallowed', 'tool_uploadcoursecategory'));
+                return false;
+            }
+        } else {
+            // If I cannot create the course, or I'm in update-only mode and I'm 
+            // not renaming
+            if (!$this->can_create() && 
+                    $this->mode === tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY &&
+                    !isset($this->rawdata['oldname'])) {
+                $this->error('categorydoesnotexistandcreatenotallowed',
+                    new lang_string('categorydoesnotexistandcreatenotallowed', 
+                        'tool_uploadcoursecategory'));
+                return false;
+            }
+        }
+
+        // Preparing final category data.
+        $finaldata = array();
+        foreach ($this->rawdata as $field => $value) {
+            if (!in_array($field, self::$validfields)) {
+                continue;
+            }
+            $finaldata[$field] = $value;
+        }
+        $finaldata['name'] = $this->name;
+       
+        // Can the category be renamed?
+        if (!empty($finaldata['oldname'])) {
+            if ($this->existing) {
+                $this->error('cannotrenamenamealreadyinuse',
+                    new lang_string('cannotrenamenamealreadyinuse', 
+                        'tool_uploadcoursecategory'));
+                return false;
+            }
+
+            $categories = explode('/', $finaldata['oldname']);
+            $oldname = array_pop($categories);
+            $oldname = trim($oldname);
+            $oldparentid = $this->prepare_parent($categories, 0);
+            $this->existing = $this->exists($oldname, $oldparentid);
+
+            if ($oldparentid === -1) {
+                $this->error('oldcategoryhierarchydoesnotexist', 
+                    new lang_string('coldcategoryhierarchydoesnotexist',
+                        'tool_uploadcoursecategory'));
+                return false;
+            } else if (!$this->can_update()) {
+                $this->error('canonlyrenameinupdatemode', 
+                    new lang_string('canonlyrenameinupdatemode', 'tool_uploadcoursecategory'));
+                return false;
+            } else if (!$this->existing) {
+                $this->error('cannotrenameoldcategorynotexist',
+                    new lang_string('cannotrenameoldcategorynotexist', 
+                        'tool_uploadcoursecategory'));
+                return false;
+            } else if (!$this->can_rename()) {
+                $this->error('categoryrenamingnotallowed',
+                    new lang_string('categoryrenamingnotallowed', 
+                        'tool_uploadcoursecategory'));
+                return false;
+            } else if (isset($this->rawdata['idnumber'])) {
+                // If category id belongs to another category
+                if ($this->existing->idnumber !== $finaldata['idnumber'] &&
+                        $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
+                    $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
+                        'tool_uploadcoursecategory'));
+                    return false;
+                }
+            }
+
+            // All the needed operations for renaming are done.
+            $this->finaldata = $this->get_final_update_data($finaldata, $this->existing);
+            $this->do = self::DO_UPDATE;
+
+            $this->set_status('coursecategoryrenamed', new lang_string('coursecategoryrenamed', 
+                'tool_uploadcoursecategory', array('from' => $oldname, 'to' => $finaldata['name'])));
+
+            return true;
+        }
+
+        // If exists, but we only want to create categories, increment the name.
+        if ($this->existing && $this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_ALL) {
+            $original = $this->name;
+            $this->name = cc_increment_name($this->name);
+            // We are creating a new course category
+            $this->existing = null;
+
+            if ($this->name !== $original) {
+                $this->set_status('coursecategoryrenamed',
+                    new lang_string('coursecategoryrenamed', 'tool_uploadcoursecategory',
+                    array('from' => $original, 'to' => $this->name)));
+                if (isset($finaldata['idnumber'])) {
+                    $originalidn = $finaldata['idnumber'];
+                    $finaldata['idnumber'] = cc_increment_idnumber($finaldata['idnumber']);
+                }
+            }
+        }  
+
+        // Check if idnumber is already taken
+        if (!$this->existing && isset($finaldata['idnumber']) &&
+                $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
+            $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
+                'tool_uploadcoursecategory'));
+            return false;
+        }
+
+        // Ultimate check mode vs. existence.
+        switch ($this->mode) {
+            case tool_uploadcoursecategory_processor::MODE_CREATE_NEW:
+            case tool_uploadcoursecategory_processor::MODE_CREATE_ALL:
+                if ($this->existing) {
+                    $this->error('categoryexistsanduploadnotallowed',
+                        new lang_string('categoryexistsanduploadnotallowed', 
+                            'tool_uploadcoursecategory'));
+                    return false;
+                }
+                break;
+            case tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY:
+                if (!$this->existing) {
+                    $this->error('categorydoesnotexistandcreatenotallowed',
+                        new lang_string('categorydoesnotexistandcreatenotallowed',
+                            'tool_uploadcoursecategory'));
+                    return false;
+                }
+                // No break!
+            case tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE:
+                if ($this->existing) {
+                    if ($updatemode === tool_uploadcoursecategory_processor::UPDATE_NOTHING) {
+                        $this->error('updatemodedoessettonothing',
+                            new lang_string('updatemodedoessettonothing', 'tool_uploadcoursecategory'));
+                        return false;
+                    }
+                }
+                break;
+            default:
+                // O_o Huh?! This should really never happen here!
+                $this->error('unknownimportmode', new lang_string('unknownimportmode', 
+                    'tool_uploadcoursecategory'));
+                return false;
+        }
+
+        // Get final data.
+        if ($this->existing) {
+            $missingonly = ($updatemode === tool_uploadcoursecategory_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
+            $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
+
+            // Make sure we are not trying to mess with the front page, though we should never get here!
+            if ($finaldata['id'] == $SITE->id) {
+                $this->error('cannotupdatefrontpage', new lang_string('cannotupdatefrontpage', 
+                    'tool_uploadcoursecategory'));
+                return false;
+            }
+
+            $this->do = self::DO_UPDATE;
+        } else {
+            $finaldata = $this->get_final_create_data($coursedata);
+            $this->do = self::DO_CREATE;
+        }
+
+        // Saving data.
+        $this->finaldata = $finaldata;
+         */
+
+        return true;
+    }
+
 }
