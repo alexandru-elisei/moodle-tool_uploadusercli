@@ -181,6 +181,110 @@ class tool_uploaduser_processor {
         $this->reset();
     }
 
+    /**
+     * Execute the process.
+     *
+     * @param object $tracker the output tracker to use.
+     * @return void
+     */
+    public function execute($tracker = null) {
+
+        global $DB;
+
+        if ($this->processstarted) {
+            throw new moodle_exception('process_already_started', 'error');
+        }
+        $this->processstarted = true;
+
+        /*
+        if (is_null($tracker)) {
+            $tracker = new tool_uploadcoursecategory_tracker(tool_uploadcoursecategory_tracker::OUTPUT_PLAIN);
+        }
+        $tracker->start();
+         */
+
+        // Statistics for tracker.
+        $total = 0;
+        $created = 0;
+        $updated = 0;
+        $deleted = 0;
+        $errors = 0;
+
+        core_php_time_limit::raise();
+        raise_memory_limit(MEMORY_HUGE);
+
+        // Loop over CSV lines.
+        while ($line = $this->cir->next()) {
+            $this->linenum++;
+            $total++;
+
+            $data = $this->parse_line($line);
+            $user = $this->get_user($data);
+
+            /*
+            if ($category->prepare()) {
+                $category->proceed();
+                $status = $category->get_statuses();
+                if (array_key_exists('coursecategoriescreated', $status)) {
+                    $created++;
+                } else if (array_key_exists('coursecategoryupdated', $status)) {
+                    $updated++;
+                } else if (array_key_exists('coursecategorydeleted', $status)) {
+                    $deleted++;
+                }
+                
+                $data = array_merge($data, $category->get_finaldata(), array('id' => $category->get_id()));
+                $tracker->output($this->linenum, true, $status, $data);
+            } else {
+                $errors++;
+                $tracker->output($this->linenum, false, $category->get_errors(), $data);
+            }
+        }
+        $tracker->results($total, $created, $updated, $deleted, $errors);
+             */
+        }
+    }
+
+    /**
+     * Return a user import object.
+     *
+     * @param array $data to import the user with.
+     * @return tool_uploaduser_user
+     */
+    protected function get_user($data) {
+        $importoptions = array(
+            'allowdeletes'          => $this->allowdeletes,
+            'allowrenames'          => $this->allowrenames,
+            'standardise'           => $this->standardise,
+            'paswordmode'           => $this->passwordmode,
+            'updatepassword'        => $this->updatepassword,
+            'allowsuspendoractivate'=> $this->allowsuspendoractivate,
+            'allowemailduplicates'  => $this->allowemailduplicates,
+        );
+
+        /*
+        return  new tool_uploadcoursecategory_category($this->mode, $this->updatemode, $data, $importoptions);
+         */
+        return $importoptions;
+    }
+
+    /**
+     * Parse a line to return an array(column => value)
+     *
+     * @param array $line returned by csv_import_reader
+     * @return array
+     */
+    protected function parse_line($line) {
+        $data = array();
+        foreach ($line as $keynum => $value) {
+            $column = $this->columns[$keynum];
+            $lccolumn = trim(core_text::strtolower($column));
+            $data[$lccolumn] = $value;
+        }
+        return $data;
+    }
+
+
     /** 
      * CSV file validation.
      *

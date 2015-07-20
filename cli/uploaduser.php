@@ -83,8 +83,6 @@ Example:
        --file=./users.csv --delimiter=comma
 ";
 
-var_dump($options);
-
 if ($unrecognized) {
     $unrecognized = implode("\n  ", $unrecognized);
     cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
@@ -191,8 +189,6 @@ if ($readcount === false) {
 unset($content);
 
 $processor = new tool_uploaduser_processor($cir, $processoroptions);
-/*
 $processor->execute();
- */
 
 print "\nDone.\n";
