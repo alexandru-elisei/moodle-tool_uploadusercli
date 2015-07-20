@@ -196,12 +196,10 @@ class tool_uploaduser_processor {
         }
         $this->processstarted = true;
 
-        /*
         if (is_null($tracker)) {
-            $tracker = new tool_uploadcoursecategory_tracker(tool_uploadcoursecategory_tracker::OUTPUT_PLAIN);
+            $tracker = new tool_uploaduser_tracker(tool_uploaduser_tracker::OUTPUT_PLAIN);
         }
         $tracker->start();
-         */
 
         // Statistics for tracker.
         $total = 0;
@@ -227,6 +225,9 @@ class tool_uploaduser_processor {
                 /*
                 $user->proceed();
                  */
+
+                print "Prepared...\n";
+
                 $status = $user->get_statuses();
                 if (array_key_exists('coursecategoriescreated', $status)) {
                     $created++;
@@ -236,24 +237,20 @@ class tool_uploaduser_processor {
                     $deleted++;
                 }
                 
-                /*
                 $data = array_merge($data, $user->get_finaldata(), array('id' => $user->get_id()));
                 $tracker->output($this->linenum, true, $status, $data);
-                 */
             } else {
                 $errors++;
-                /*
                 $tracker->output($this->linenum, false, $user->get_errors(), $data);
-                 */
 
+                /*
                 print "PROCESSOR::proceed errors:\n";
                 $errors = $user->get_errors();
                 var_dump($errors);
+                 */
             }
         }
-        /*
         $tracker->results($total, $created, $updated, $deleted, $errors);
-             */
     }
 
     /**

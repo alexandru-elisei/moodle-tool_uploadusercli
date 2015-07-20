@@ -58,7 +58,7 @@ class tool_uploaduser_user {
     protected $defaults = array();
 
     /** @var int the ID of the user that has been processed. */
-    protected $id;
+    protected $id = -1;
 
     /** @var int the moodle net host id. */
     protected $mnethostid;
@@ -258,6 +258,29 @@ class tool_uploaduser_user {
     }
 
     /**
+     * Return final user data.
+     *
+     * @return void
+     */
+    public function get_finaldata() {
+        return $this->finaldata;
+    }
+
+    /**
+     * Return the ID of the processed user.
+     *
+     * @return int|null
+     */
+    public function get_id() {
+        /*
+        if (!$this->processstarted) {
+            throw new coding_exception('The course has not been processed yet!');
+        }
+         */
+        return $this->id;
+    }
+
+    /**
      * Return the user database entry, or null.
      *
      * @param string $username the username to use to check if the user exists.
@@ -297,7 +320,7 @@ class tool_uploaduser_user {
         // Checking mandatory fields.
         foreach (self::$mandatoryfields as $key => $field) {
             if (!isset($this->rawdata[$field])) {
-                $this->error('missingmandatoryfields', new lang_string('missingmandatoryfields',
+                $this->error('missingfield', new lang_string('missingfield',
                     'tool_uploaduser'));
                 return false;
             }
@@ -356,6 +379,11 @@ class tool_uploaduser_user {
                     new lang_string('userexistsupdatenotallowed', 'tool_uploaduser'));
                 return false;
             }
+            if (is_siteadmin($this->existing->id)) {
+                $this->error('usernotupdatedadmin',
+                    new lang_string('usernotupdatedadmin',  'tool_uploaduser'));
+                return false;
+            }
         } else {
             // If I cannot create the course, or I'm in update-only mode and I'm 
             // not renaming
@@ -367,6 +395,8 @@ class tool_uploaduser_user {
                 return false;
             }
         }
+
+        // Is the email valid?
 
         print  "USER::Passed updating/existing checks...\n";
 
@@ -436,7 +466,8 @@ class tool_uploaduser_user {
             return true;
         }
 
-        /*
+        print "Before incrementing name...\n";
+
 
         // If exists, but we only want to create categories, increment the name.
         if ($this->existing && $this->mode === tool_uploaduser_processor::MODE_CREATE_ALL) {
@@ -456,6 +487,9 @@ class tool_uploaduser_user {
             }
         }  
 
+        print "After incrementing name...\n";
+
+        /*
         // Check if idnumber is already taken
         if (!$this->existing && isset($finaldata['idnumber']) &&
                 $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
@@ -517,10 +551,10 @@ class tool_uploaduser_user {
             $this->do = self::DO_CREATE;
         }
 
-        // Saving data.
-        $this->finaldata = $finaldata;
          */
 
+        // Saving data.
+        $this->finaldata = $finaldata;
         return true;
     }
 
