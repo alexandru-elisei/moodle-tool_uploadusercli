@@ -123,32 +123,29 @@ class tool_uploaduser_user {
      * @param array $rawdata raw user data.
      * @param array $importoptions import options.
      */
-    /*
     public function __construct($mode, $updatemode, $rawdata, $importoptions = array()) {
-        if ($mode !== tool_uploadcoursecategory_processor::MODE_CREATE_NEW &&
-                $mode !== tool_uploadcoursecategory_processor::MODE_CREATE_ALL &&
-                $mode !== tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE &&
-                $mode !== tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY) {
+        if ($mode !== tool_uploaduser_processor::MODE_CREATE_NEW &&
+                $mode !== tool_uploaduser_processor::MODE_CREATE_ALL &&
+                $mode !== tool_uploaduser_processor::MODE_CREATE_OR_UPDATE &&
+                $mode !== tool_uploaduser_processor::MODE_UPDATE_ONLY) {
             throw new coding_exception('Incorrect mode.');
-        } else if ($updatemode !== tool_uploadcoursecategory_processor::UPDATE_NOTHING &&
-                $updatemode !== tool_uploadcoursecategory_processor::UPDATE_ALL_WITH_DATA_ONLY &&
-                $updatemode !== tool_uploadcoursecategory_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS &&
-                $updatemode !== tool_uploadcoursecategory_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS) {
+        } else if ($updatemode !== tool_uploaduser_processor::UPDATE_NOTHING &&
+                $updatemode !== tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_ONLY &&
+                $updatemode !== tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS &&
+                $updatemode !== tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS) {
             throw new coding_exception('Incorrect update mode.');
         }
 
         $this->mode = $mode;
         $this->updatemode = $updatemode;
 
-        if (isset($rawdata['name'])) {
-            $categories = explode('/', $rawdata['name']);
-            $this->name = array_pop($categories);
+        if (isset($rawdata['username'])) {
             // Stripping whitespaces.
-            $this->name = trim($this->name);
+            $this->username = trim($rawdata['username']);
         }
         $this->rawdata = $rawdata;
 
-        // Extract course options.
+        // Extract user options.
         foreach (self::$optionfields as $option => $default) {
             $this->options[$option] = $rawdata[$option] ? $rawdata[$option] : null;
         }
@@ -156,5 +153,4 @@ class tool_uploaduser_user {
         // Copy import options.
         $this->importoptions = $importoptions;
     }
-     */
 }

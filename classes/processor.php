@@ -221,6 +221,8 @@ class tool_uploaduser_processor {
             $data = $this->parse_line($line);
             $user = $this->get_user($data);
 
+            var_dump($user);
+
             /*
             if ($user->prepare()) {
                 $user->proceed();
@@ -261,11 +263,7 @@ class tool_uploaduser_processor {
             'allowsuspendoractivate'=> $this->allowsuspendoractivate,
             'allowemailduplicates'  => $this->allowemailduplicates,
         );
-
-        /*
         return  new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);
-         */
-        return $importoptions;
     }
 
     /**
