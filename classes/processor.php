@@ -177,12 +177,36 @@ class tool_uploaduser_processor {
 
         $this->cir = $cir;
         $this->columns = $cir->get_columns();
-        /*
         $this->validate_csv();
         $this->reset();
-         */
     }
 
+    /** 
+     * CSV file validation.
+     *
+     * @return void
+     */
+    protected function validate_csv() {
 
+        print "Validating csv...\n";
+
+        if (empty($this->columns)) {
+            throw new moodle_exception('cannot_read_tmp_file', 'error');
+        }
+    }
+
+    /**
+     * Reset the current process.
+     *
+     * @return void.
+     */
+    protected function reset() {
+
+        print "Resetting...\n";
+
+        $this->processstarted = false;
+        $this->linenum = 0;
+        $this->cir->init();
+        $this->errors = array();
+    }
 }
-
