@@ -216,6 +216,15 @@ class tool_uploaduser_user {
     }
 
     /**
+     * Does the mode allow for user deletion?
+     *
+     * @return bool
+     */
+    protected function can_delete() {
+        return $this->importoptions['allowdeletes'];
+    }
+
+    /**
      * Return the user database entry, or null.
      *
      * @param string $username the username to use to check if the user exists.
@@ -289,33 +298,24 @@ class tool_uploaduser_user {
 
         $this->existing = $this->exists();
 
-        /*
-        // Validate parent hierarchy.
-        $this->parentid = $this->prepare_parent();
-        if ($this->parentid == -1) {
-            $this->error('missingcategoryparent', new lang_string('missingcategoryparent',
-                'tool_uploaduser'));
-            return false;
-        }
-
-
-        // Can we delete the category?
+        // Can we delete the user?
         if (!empty($this->options['deleted'])) {
             if (empty($this->existing)) {
-                $this->error('cannotdeletecategorynotexist', new lang_string('cannotdeletecategorynotexist',
+                $this->error('usernotdeletedmissing', new lang_string('usernotdeletedmissing',
                     'tool_uploaduser'));
                 return false;
             } else if (!$this->can_delete()) {
-                $this->error('categorydeletionnotallowed', new lang_string('categorydeletionnotallowed',
+                $this->error('usernotdeletedoff', new lang_string('usernotdeletedoff',
                     'tool_uploaduser'));
                 return false;
             }
-
             $this->do = self::DO_DELETE;
-            
-            // We only need the name and parent id for category deletion.
+
+            print "USER::deletion queued...\n";
+
             return true;
         }
+/*
 
         // Can we create/update the course under those conditions?
         if ($this->existing) {
