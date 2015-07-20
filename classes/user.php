@@ -225,6 +225,39 @@ class tool_uploaduser_user {
     }
 
     /**
+     * Does the mode allow for user update?
+     *
+     * @return bool
+     */
+    public function can_update() {
+        return in_array($this->mode,
+                array(
+                    tool_uploaduser_processor::MODE_UPDATE_ONLY,
+                    tool_uploaduser_processor::MODE_CREATE_OR_UPDATE)
+                ) && $this->updatemode !== tool_uploaduser_processor::UPDATE_NOTHING;
+    }
+
+    /**
+     * Does the mode allow for user creation?
+     *
+     * @return bool
+     */
+    protected function can_create() {
+        return in_array($this->mode, array(tool_uploaduser_processor::MODE_CREATE_ALL,
+            tool_uploaduser_processor::MODE_CREATE_NEW,
+            tool_uploaduser_processor::MODE_CREATE_OR_UPDATE));
+    }
+
+    /**
+     * Does the mode allow for user renaming?
+     *
+     * @return bool
+     */
+    public function can_rename() {
+        return $this->importoptions['allowrenames'];
+    }
+
+    /**
      * Return the user database entry, or null.
      *
      * @param string $username the username to use to check if the user exists.
@@ -315,14 +348,12 @@ class tool_uploaduser_user {
 
             return true;
         }
-/*
 
-        // Can we create/update the course under those conditions?
+        // Can we create/update the user under those conditions?
         if ($this->existing) {
-
             if ($this->mode === tool_uploaduser_processor::MODE_CREATE_NEW) {
-                $this->error('categoryexistsanduploadnotallowed',
-                    new lang_string('categoryexistsanduploadnotallowed', 'tool_uploaduser'));
+                $this->error('userexistsupdatenotallowed',
+                    new lang_string('userexistsupdatenotallowed', 'tool_uploaduser'));
                 return false;
             }
         } else {
@@ -330,13 +361,14 @@ class tool_uploaduser_user {
             // not renaming
             if (!$this->can_create() && 
                     $this->mode === tool_uploaduser_processor::MODE_UPDATE_ONLY &&
-                    !isset($this->rawdata['oldname'])) {
-                $this->error('categorydoesnotexistandcreatenotallowed',
-                    new lang_string('categorydoesnotexistandcreatenotallowed', 
-                        'tool_uploaduser'));
+                    !isset($this->rawdata['oldusername'])) {
+                $this->error('usernotexistscreationnotallowed',
+                    new lang_string('usernotexistscreationnotallowed', 'tool_uploaduser'));
                 return false;
             }
         }
+
+        print  "USER::Passed updating/existing checks...\n";
 
         // Preparing final category data.
         $finaldata = array();
@@ -346,46 +378,44 @@ class tool_uploaduser_user {
             }
             $finaldata[$field] = $value;
         }
-        $finaldata['name'] = $this->name;
+        $finaldata['username'] = $this->username;
+        $finaldata['mnethostid'] = $this->mnethostid;
+
+        /*
+        print "Final data:\n";
+        var_dump($finaldata);
+         */
        
         // Can the category be renamed?
-        if (!empty($finaldata['oldname'])) {
+        if (!empty($finaldata['oldusername'])) {
             if ($this->existing) {
-                $this->error('cannotrenamenamealreadyinuse',
-                    new lang_string('cannotrenamenamealreadyinuse', 
-                        'tool_uploaduser'));
+                $this->error('usernotrenamedexists',
+                    new lang_string('usernotrenamedexists',  'tool_uploaduser'));
                 return false;
             }
 
-            $categories = explode('/', $finaldata['oldname']);
-            $oldname = array_pop($categories);
-            $oldname = trim($oldname);
-            $oldparentid = $this->prepare_parent($categories, 0);
-            $this->existing = $this->exists($oldname, $oldparentid);
+            $oldusername = trim($finaldata['oldusername']);
+            if ($this->importoptions['standardise']) {
+                $oldusername = clean_param($oldusername, PARAM_USERNAME);
+            }
+            $this->existing = $this->exists($oldusername);
 
-            if ($oldparentid === -1) {
-                $this->error('oldcategoryhierarchydoesnotexist', 
-                    new lang_string('coldcategoryhierarchydoesnotexist',
-                        'tool_uploaduser'));
-                return false;
-            } else if (!$this->can_update()) {
-                $this->error('canonlyrenameinupdatemode', 
-                    new lang_string('canonlyrenameinupdatemode', 'tool_uploaduser'));
+            if (!$this->can_update()) {
+                $this->error('usernotupdatederror', 
+                    new lang_string('usernotupdatederror', 'tool_uploaduser'));
                 return false;
             } else if (!$this->existing) {
-                $this->error('cannotrenameoldcategorynotexist',
-                    new lang_string('cannotrenameoldcategorynotexist', 
-                        'tool_uploaduser'));
+                $this->error('usernotrenamedmissing',
+                    new lang_string('usernotrenamedmissing', 'tool_uploaduser'));
                 return false;
             } else if (!$this->can_rename()) {
-                $this->error('categoryrenamingnotallowed',
-                    new lang_string('categoryrenamingnotallowed', 
-                        'tool_uploaduser'));
+                $this->error('usernotrenamedoff',
+                    new lang_string('usernotrenamedoff', 'tool_uploaduser'));
                 return false;
-            } else if (isset($this->rawdata['idnumber'])) {
+            } else if (isset($this->rawdata['id'])) {
                 // If category id belongs to another category
-                if ($this->existing->idnumber !== $finaldata['idnumber'] &&
-                        $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
+                if ($this->existing->id !== $finaldata['id'] &&
+                        $DB->record_exists('user', array('id' => $finaldata['id']))) {
                     $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
                         'tool_uploaduser'));
                     return false;
@@ -393,14 +423,20 @@ class tool_uploaduser_user {
             }
 
             // All the needed operations for renaming are done.
-            $this->finaldata = $this->get_final_update_data($finaldata, $this->existing);
+            //$this->finaldata = $this->get_final_update_data($finaldata, $this->existing);
             $this->do = self::DO_UPDATE;
 
+            print "USER::Renaming queued...\n";
+
+            /*
             $this->set_status('coursecategoryrenamed', new lang_string('coursecategoryrenamed', 
                 'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata['name'])));
+             */
 
             return true;
         }
+
+        /*
 
         // If exists, but we only want to create categories, increment the name.
         if ($this->existing && $this->mode === tool_uploaduser_processor::MODE_CREATE_ALL) {
