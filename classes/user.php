@@ -58,7 +58,7 @@ class tool_uploaduser_user {
     protected $defaults = array();
 
     /** @var int the ID of the user that has been processed. */
-    protected $id = -1;
+    protected $id;
 
     /** @var int the moodle net host id. */
     protected $mnethostid;
@@ -372,16 +372,18 @@ class tool_uploaduser_user {
             }
         }
 
+        // Cannot edit guest user.
+        if ($this->username === 'guest') {
+            $this->error('guestnoeditprofileother', new lang_string('guestnoeditprofileother',
+                'tool_uploaduser'));
+            return false;
+        }
+
         // Can we create/update the user under those conditions?
         if ($this->existing) {
             if ($this->mode === tool_uploaduser_processor::MODE_CREATE_NEW) {
                 $this->error('userexistsupdatenotallowed',
                     new lang_string('userexistsupdatenotallowed', 'tool_uploaduser'));
-                return false;
-            }
-            if (is_siteadmin($this->existing->id)) {
-                $this->error('usernotupdatedadmin',
-                    new lang_string('usernotupdatedadmin',  'tool_uploaduser'));
                 return false;
             }
         } else {
@@ -463,7 +465,13 @@ class tool_uploaduser_user {
                 'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata['name'])));
              */
 
-            return true;
+            //return true;
+        }
+
+        if ($this->existing && is_siteadmin($this->existing->id)) {
+            $this->error('usernotupdatedadmin',
+                new lang_string('usernotupdatedadmin',  'tool_uploaduser'));
+            return false;
         }
 
         print "Before incrementing name...\n";
