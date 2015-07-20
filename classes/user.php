@@ -325,14 +325,14 @@ class tool_uploaduser_user {
         // Validate username format
         if ($this->username !== clean_param($this->username, PARAM_USERNAME)) {
             $this->error('invalidusername', new lang_string('invalidusername',
-                'tool_uploaduser'));
+                'error'));
             return false;
         }
 
         // Validate moodle net host id.
         if (!is_numeric($this->mnethostid)) {
             $this->error('mnethostidnotanumber', new lang_string('mnethostidnotanumber',
-                'tool_uploaduser'));
+                'error'));
             return false;
         }
 
@@ -342,11 +342,15 @@ class tool_uploaduser_user {
         if (!empty($this->options['deleted'])) {
             if (empty($this->existing)) {
                 $this->error('usernotdeletedmissing', new lang_string('usernotdeletedmissing',
-                    'tool_uploaduser'));
+                    'error'));
                 return false;
             } else if (!$this->can_delete()) {
                 $this->error('usernotdeletedoff', new lang_string('usernotdeletedoff',
-                    'tool_uploaduser'));
+                    'error'));
+                return false;
+            } else if ($this->username === 'admin') {
+                $this->error('usernotdeletedadmin', new lang_string('usernotdeletedadmin',
+                    'error'));
                 return false;
             }
             $this->do = self::DO_DELETE;
@@ -358,8 +362,8 @@ class tool_uploaduser_user {
  
         // Validate id field.
         if (isset($this->rawdata['id']) && !is_numeric($this->rawdata['id'])) {
-            $this->error('idnotanumber', new lang_string('idnotanumber',
-                'tool_uploaduser'));
+            $this->error('useridnotanumber', new lang_string('useridnotanumber',
+                'error'));
             return false;
         }
  
@@ -367,7 +371,7 @@ class tool_uploaduser_user {
         foreach (self::$mandatoryfields as $key => $field) {
             if (!isset($this->rawdata[$field])) {
                 $this->error('missingfield', new lang_string('missingfield',
-                    'tool_uploaduser'));
+                    'error', $field));
                 return false;
             }
         }
@@ -375,7 +379,7 @@ class tool_uploaduser_user {
         // Cannot edit guest user.
         if ($this->username === 'guest') {
             $this->error('guestnoeditprofileother', new lang_string('guestnoeditprofileother',
-                'tool_uploaduser'));
+                'error'));
             return false;
         }
 
@@ -383,7 +387,7 @@ class tool_uploaduser_user {
         if ($this->existing) {
             if ($this->mode === tool_uploaduser_processor::MODE_CREATE_NEW) {
                 $this->error('userexistsupdatenotallowed',
-                    new lang_string('userexistsupdatenotallowed', 'tool_uploaduser'));
+                    new lang_string('userexistsupdatenotallowed', 'error'));
                 return false;
             }
         } else {
@@ -434,7 +438,7 @@ class tool_uploaduser_user {
 
             if (!$this->can_update()) {
                 $this->error('usernotupdatederror', 
-                    new lang_string('usernotupdatederror', 'tool_uploaduser'));
+                    new lang_string('usernotupdatederror', 'error'));
                 return false;
             } else if (!$this->existing) {
                 $this->error('usernotrenamedmissing',
@@ -460,10 +464,8 @@ class tool_uploaduser_user {
 
             print "USER::Renaming queued...\n";
 
-            /*
-            $this->set_status('coursecategoryrenamed', new lang_string('coursecategoryrenamed', 
+            $this->set_status('userrenamed', new lang_string('userrenamed', 
                 'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata['name'])));
-             */
 
             //return true;
         }
