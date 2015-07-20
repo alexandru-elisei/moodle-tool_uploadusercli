@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 require_once($CFG->libdir . '/moodlelib.php');
 
 /**
@@ -486,22 +487,23 @@ class tool_uploaduser_user {
 
         print "Before incrementing name...\n";
 
-
-        // If exists, but we only want to create categories, increment the name.
+        // If exists, but we only want to create users, increment the username.
         if ($this->existing && $this->mode === tool_uploaduser_processor::MODE_CREATE_ALL) {
-            $original = $this->name;
-            $this->name = cc_increment_name($this->name);
-            // We are creating a new course category
+            $original = $this->username;
+            $this->username = uu_increment_username($this->username);
+            // We are creating a new user.
             $this->existing = null;
 
-            if ($this->name !== $original) {
-                $this->set_status('coursecategoryrenamed',
-                    new lang_string('coursecategoryrenamed', 'tool_uploaduser',
+            if ($this->username !== $original) {
+                $this->set_status('userrenamed',
+                    new lang_string('userrenamed', 'tool_uploaduser',
                     array('from' => $original, 'to' => $this->name)));
-                if (isset($finaldata['idnumber'])) {
-                    $originalidn = $finaldata['idnumber'];
-                    $finaldata['idnumber'] = cc_increment_idnumber($finaldata['idnumber']);
+                /*
+                if (isset($finaldata['id'])) {
+                    $originalidn = $finaldata['id'];
+                    $finaldata['idnumber'] = uu_increment_idnumber($finaldata['idnumber']);
                 }
+                 */
             }
         }  
 
@@ -572,6 +574,7 @@ class tool_uploaduser_user {
          */
 
         // Saving data.
+        $finaldata['username'] = $this->username;
         $this->finaldata = $finaldata;
         return true;
     }
