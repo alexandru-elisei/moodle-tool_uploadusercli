@@ -222,9 +222,9 @@ class tool_uploaduser_processor {
             $user = $this->get_user($data);
 
             /*
-            if ($category->prepare()) {
-                $category->proceed();
-                $status = $category->get_statuses();
+            if ($user->prepare()) {
+                $user->proceed();
+                $status = $user->get_statuses();
                 if (array_key_exists('coursecategoriescreated', $status)) {
                     $created++;
                 } else if (array_key_exists('coursecategoryupdated', $status)) {
@@ -233,11 +233,11 @@ class tool_uploaduser_processor {
                     $deleted++;
                 }
                 
-                $data = array_merge($data, $category->get_finaldata(), array('id' => $category->get_id()));
+                $data = array_merge($data, $user->get_finaldata(), array('id' => $user->get_id()));
                 $tracker->output($this->linenum, true, $status, $data);
             } else {
                 $errors++;
-                $tracker->output($this->linenum, false, $category->get_errors(), $data);
+                $tracker->output($this->linenum, false, $user->get_errors(), $data);
             }
         }
         $tracker->results($total, $created, $updated, $deleted, $errors);
@@ -263,7 +263,7 @@ class tool_uploaduser_processor {
         );
 
         /*
-        return  new tool_uploadcoursecategory_category($this->mode, $this->updatemode, $data, $importoptions);
+        return  new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);
          */
         return $importoptions;
     }
