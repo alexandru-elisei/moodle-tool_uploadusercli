@@ -174,5 +174,4 @@ class tool_uploaduser_tracker {
             }
         }     
     }
-
 }

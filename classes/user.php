@@ -317,22 +317,6 @@ class tool_uploaduser_user {
 
         $this->prepared = true;
         
-        // Checking mandatory fields.
-        foreach (self::$mandatoryfields as $key => $field) {
-            if (!isset($this->rawdata[$field])) {
-                $this->error('missingfield', new lang_string('missingfield',
-                    'tool_uploaduser'));
-                return false;
-            }
-        }
-
-        // Validate id field.
-        if (isset($this->rawdata['id']) && !is_numeric($this->rawdata['id'])) {
-            $this->error('idnotanumber', new lang_string('idnotanumber',
-                'tool_uploaduser'));
-            return false;
-        }
-
         // Standardise username.
         if ($this->importoptions['standardise']) {
             $this->username = clean_param($this->username, PARAM_USERNAME);
@@ -354,7 +338,7 @@ class tool_uploaduser_user {
 
         $this->existing = $this->exists();
 
-        // Can we delete the user?
+        // Can we delete the user? We only need username for deletion.
         if (!empty($this->options['deleted'])) {
             if (empty($this->existing)) {
                 $this->error('usernotdeletedmissing', new lang_string('usernotdeletedmissing',
@@ -370,6 +354,22 @@ class tool_uploaduser_user {
             print "USER::deletion queued...\n";
 
             return true;
+        }
+ 
+        // Validate id field.
+        if (isset($this->rawdata['id']) && !is_numeric($this->rawdata['id'])) {
+            $this->error('idnotanumber', new lang_string('idnotanumber',
+                'tool_uploaduser'));
+            return false;
+        }
+ 
+        // Checking mandatory fields.
+        foreach (self::$mandatoryfields as $key => $field) {
+            if (!isset($this->rawdata[$field])) {
+                $this->error('missingfield', new lang_string('missingfield',
+                    'tool_uploaduser'));
+                return false;
+            }
         }
 
         // Can we create/update the user under those conditions?
