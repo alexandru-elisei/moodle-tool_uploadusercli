@@ -396,8 +396,8 @@ class tool_uploaduser_user {
             if (!$this->can_create() && 
                     $this->mode === tool_uploaduser_processor::MODE_UPDATE_ONLY &&
                     !isset($this->rawdata['oldusername'])) {
-                $this->error('usernotexistscreationnotallowed',
-                    new lang_string('usernotexistscreationnotallowed', 'tool_uploaduser'));
+                $this->error('usernotexistscreatenotallowed',
+                    new lang_string('usernotexistscreatenotallowed', 'error'));
                 return false;
             }
         }
@@ -426,7 +426,7 @@ class tool_uploaduser_user {
         if (!empty($finaldata['oldusername'])) {
             if ($this->existing) {
                 $this->error('usernotrenamedexists',
-                    new lang_string('usernotrenamedexists',  'tool_uploaduser'));
+                    new lang_string('usernotrenamedexists',  'error'));
                 return false;
             }
 
@@ -442,18 +442,18 @@ class tool_uploaduser_user {
                 return false;
             } else if (!$this->existing) {
                 $this->error('usernotrenamedmissing',
-                    new lang_string('usernotrenamedmissing', 'tool_uploaduser'));
+                    new lang_string('usernotrenamedmissing', 'error'));
                 return false;
             } else if (!$this->can_rename()) {
                 $this->error('usernotrenamedoff',
-                    new lang_string('usernotrenamedoff', 'tool_uploaduser'));
+                    new lang_string('usernotrenamedoff', 'error'));
                 return false;
             } else if (isset($this->rawdata['id'])) {
                 // If category id belongs to another category
                 if ($this->existing->id !== $finaldata['id'] &&
                         $DB->record_exists('user', array('id' => $finaldata['id']))) {
                     $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
-                        'tool_uploaduser'));
+                        'error'));
                     return false;
                 }
             }
@@ -470,10 +470,18 @@ class tool_uploaduser_user {
             //return true;
         }
 
-        if ($this->existing && is_siteadmin($this->existing->id)) {
-            $this->error('usernotupdatedadmin',
-                new lang_string('usernotupdatedadmin',  'tool_uploaduser'));
-            return false;
+        if ($this->existing) {
+            // Do not update admin account through the csv.
+            if (is_siteadmin($this->existing->id)) {
+                $this->error('usernotupdatedadmin',
+                    new lang_string('usernotupdatedadmin',  'tool_uploaduser'));
+                return false;
+            // Do not update guest account through the csv.
+            } else if ($this->existing->username === 'guest') {
+                $this->error('guestnoeditprofileother', new lang_string('guestnoeditprofileother',
+                    'error'));
+                return false;
+            }
         }
 
         print "Before incrementing name...\n";
