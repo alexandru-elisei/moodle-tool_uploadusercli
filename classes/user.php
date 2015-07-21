@@ -67,7 +67,7 @@ class tool_uploaduser_user {
     const DO_DELETE = 3;
 
     /** @var array final import data. */
-    protected $finaldata = array();
+    protected $finaldata = null;
 
     /** @var array user import data. */
     protected $rawdata = array();
@@ -177,6 +177,7 @@ class tool_uploaduser_user {
         }
 
         $this->rawdata = $rawdata;
+        $this->finaldata = new stdClass();
 
         // Extract user options.
         foreach (self::$optionfields as $option => $default) {
@@ -450,15 +451,15 @@ class tool_uploaduser_user {
         print  "USER::Passed updating/existing checks...\n";
 
         // Preparing final category data.
-        $finaldata = array();
+        $finaldata = new stdClass();
         foreach ($this->rawdata as $field => $value) {
             if (!in_array($field, self::$validfields)) {
                 continue;
             }
-            $finaldata[$field] = trim($value);
+            $finaldata->$field = trim($value);
         }
-        $finaldata['username'] = $this->username;
-        $finaldata['mnethostid'] = $this->mnethostid;
+        $finaldata->username = $this->username;
+        $finaldata->mnethostid = $this->mnethostid;
 
         /*
         print "Final data:\n";
@@ -466,14 +467,14 @@ class tool_uploaduser_user {
          */
        
         // Can the user be renamed?
-        if (!empty($finaldata['oldusername'])) {
+        if (!empty($finaldata->oldusername)) {
             if ($this->existing) {
                 $this->error('usernotrenamedexists',
                     new lang_string('usernotrenamedexists',  'error'));
                 return false;
             }
 
-            $oldusername = trim($finaldata['oldusername']);
+            $oldusername = trim($finaldata->oldusername);
             if ($this->importoptions['standardise']) {
                 $oldusername = clean_param($oldusername, PARAM_USERNAME);
             }
@@ -493,8 +494,8 @@ class tool_uploaduser_user {
                 return false;
             } else if (isset($this->rawdata['id'])) {
                 // If category id belongs to another user
-                if ($this->existing->id !== $finaldata['id'] &&
-                        $DB->record_exists('user', array('id' => $finaldata['id']))) {
+                if ($this->existing->id !== $finaldata->id &&
+                        $DB->record_exists('user', array('id' => $finaldata->id))) {
                     $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
                         'error'));
                     return false;
@@ -506,7 +507,7 @@ class tool_uploaduser_user {
             print "USER::Renaming queued...\n";
 
             $this->set_status('userrenamed', new lang_string('userrenamed', 
-                'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata['name'])));
+                'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata->name)));
 
             //return true;
         }
@@ -619,7 +620,7 @@ class tool_uploaduser_user {
          */
 
         // Saving data.
-        $finaldata['username'] = $this->username;
+        $finaldata->username = $this->username;
         $this->finaldata = $finaldata;
         return true;
     }
@@ -668,15 +669,12 @@ class tool_uploaduser_user {
         $dologout = false;
 
         $existingdata->timemodified = time();
-        //print "Existingdata:\n";
-        var_dump($existingdata);
-        //profile_load_data($existingdata);
+        profile_load_data($existingdata);
 
-        /*
         // Changing auth information.
-        if (!empty($existingdata['auth']) && $data['auth']) {
-            $existingdata['auth'] = $data['auth'];
-            if ($data['auth'] === 'nologin') {
+        if (!empty($existingdata->auth) && $data->auth) {
+            $existingdata->auth = $data->auth;
+            if ($data->auth === 'nologin') {
                 $dologout = true;
             }
         }
@@ -685,11 +683,11 @@ class tool_uploaduser_user {
                 $field === 'auth' || $field === 'suspended')
                 continue;
 
-            if (!$data[$field] || !$existingdata[$field]) {
+            if (!$data->$field || !$existingdata->$field) {
                 continue;
             }
             if ($missingonly) {
-                if ($existingdata[$field]) {
+                if ($existingdata->$field) {
                     continue;
                 }
             } else if ($this->updatemode === tool_uploaduser_processor::UPDATE_ALL_WITH_SATA_OR_DEFAULTS) {
@@ -702,10 +700,10 @@ class tool_uploaduser_user {
                 }
             }
 
-            if ($existingdata[$field] !== $data[$field]) {
+            if ($existingdata->$field !== $data->$field) {
                 // Checking email.
                 if ($field === 'email') {
-                    if ($DB->record_exists('user', array('email' => $this->rawdata['email']))) {
+                    if ($DB->record_exists('user', array('email' => $data->email))) {
                         if ($this->importoptions['noemailduplicates']) {
                             $this->error('useremailduplicate', new lang_string('useremailduplicate',
                                 'error'));
@@ -714,24 +712,23 @@ class tool_uploaduser_user {
                                 'warning'));
                         }
                     }
-                    if (!validate_email($data['email'])) {
+                    if (!validate_email($data->email)) {
                         $this->set_status('invalidemail', new lang_string('invalidemail', 'warning'));
                     }
                 } else if ($field === 'lang') {
-                    if (empty($data['lang'])) {
+                    if (empty($data->lang)) {
                         // Don't change language if not already set.
                         continue;
-                    } else if (clean_param($data['lang'], PARAM_LANG) === '') {
+                    } else if (clean_param($data->lang, PARAM_LANG) === '') {
                         $this->set_status('cannotfindlang', new lang_string('cannotfindlang', 'error'));
                         continue;
                     }
                 } else {
-                    $existingdata[$field] = $data[$field];
+                    $existingdata->$field = $data->$field;
                     $doupdate = true;
                 }
             }
         }
-         */
 
         return $existingdata;
     }
