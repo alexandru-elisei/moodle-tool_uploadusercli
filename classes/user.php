@@ -25,8 +25,18 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/course/lib.php');
+
+// Verified, actually needed.
+require_once($CFG->dirroot . '/user/profile/lib.php');
+
+// Verified, actually needed.
 require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
+
+// Verified, actually needed.
 require_once($CFG->libdir . '/moodlelib.php');
+
+// Verified, actually needed.
+require_once($CFG->libdir . '/weblib.php');
 
 /**
  * User class.
@@ -90,6 +100,9 @@ class tool_uploaduser_user {
 
     /** @var bool set to true once we have started processing the user. */
     protected $processstarted = false;
+
+    /** @var array supported auth plugins that enabled. */
+    protected $supportedauths = array();
 
     /** @var string username. */
     protected $username;
@@ -162,6 +175,9 @@ class tool_uploaduser_user {
 
         // Copy import options.
         $this->importoptions = $importoptions;
+
+        // Supported authentification plugins.
+        $this->supportedauths = uu_supported_auths();
     }
 
     /**
@@ -356,6 +372,8 @@ class tool_uploaduser_user {
 
         $this->existing = $this->exists();
 
+        var_dump($this);
+
         // Can we delete the user? We only need username for deletion.
         if (!empty($this->options['deleted'])) {
             if (empty($this->existing)) {
@@ -420,8 +438,6 @@ class tool_uploaduser_user {
             }
         }
 
-        // Is the email valid?
-
         print  "USER::Passed updating/existing checks...\n";
 
         // Preparing final category data.
@@ -440,7 +456,7 @@ class tool_uploaduser_user {
         var_dump($finaldata);
          */
        
-        // Can the category be renamed?
+        // Can the user be renamed?
         if (!empty($finaldata['oldusername'])) {
             if ($this->existing) {
                 $this->error('usernotrenamedexists',
@@ -467,7 +483,7 @@ class tool_uploaduser_user {
                     new lang_string('usernotrenamedoff', 'error'));
                 return false;
             } else if (isset($this->rawdata['id'])) {
-                // If category id belongs to another category
+                // If category id belongs to another user
                 if ($this->existing->id !== $finaldata['id'] &&
                         $DB->record_exists('user', array('id' => $finaldata['id']))) {
                     $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
@@ -476,8 +492,10 @@ class tool_uploaduser_user {
                 }
             }
 
+            /*
             // All the needed operations for renaming are done.
-            //$this->finaldata = $this->get_final_update_data($finaldata, $this->existing);
+            $this->finaldata = $this->get_final_update_data($finaldata, $this->existing);
+             */
             $this->do = self::DO_UPDATE;
 
             print "USER::Renaming queued...\n";
@@ -488,13 +506,12 @@ class tool_uploaduser_user {
             //return true;
         }
 
+        // Do not update admin and guest account through the csv.
         if ($this->existing) {
-            // Do not update admin account through the csv.
             if (is_siteadmin($this->existing->id)) {
                 $this->error('usernotupdatedadmin',
                     new lang_string('usernotupdatedadmin',  'tool_uploaduser'));
                 return false;
-            // Do not update guest account through the csv.
             } else if ($this->existing->username === 'guest') {
                 $this->error('guestnoeditprofileother', new lang_string('guestnoeditprofileother',
                     'error'));
@@ -524,8 +541,6 @@ class tool_uploaduser_user {
             }
         }  
 
-        print "After incrementing name...\n";
-
         /*
         // Check if idnumber is already taken
         if (!$this->existing && isset($finaldata['idnumber']) &&
@@ -534,29 +549,37 @@ class tool_uploaduser_user {
                 'tool_uploaduser'));
             return false;
         }
+         */
+
+        print "Last check...\n";
 
         // Ultimate check mode vs. existence.
         switch ($this->mode) {
             case tool_uploaduser_processor::MODE_CREATE_NEW:
-            case tool_uploaduser_processor::MODE_CREATE_ALL:
                 if ($this->existing) {
-                    $this->error('categoryexistsanduploadnotallowed',
-                        new lang_string('categoryexistsanduploadnotallowed', 
-                            'tool_uploaduser'));
+                    $this->error('usernotaddedregistered',
+                        new lang_string('usernotaddedregistered', 'error'));
+                    return false;
+                }
+                break;
+            case tool_uploaduser::MODE_CREATE_ALL:
+                // This should not happen, we set existing to null when we increment. 
+                if ($this->existing) {
+                    $this->error('usernotaddederror',
+                        new lang_string('usernotaddederror', 'error'));
                     return false;
                 }
                 break;
             case tool_uploaduser_processor::MODE_UPDATE_ONLY:
                 if (!$this->existing) {
-                    $this->error('categorydoesnotexistandcreatenotallowed',
-                        new lang_string('categorydoesnotexistandcreatenotallowed',
-                            'tool_uploaduser'));
+                    $this->error('usernotexistcreatenotallowed',
+                        new lang_string('usernotexistcreatenotallowed', 'tool_uploaduser'));
                     return false;
                 }
                 // No break!
             case tool_uploaduser_processor::MODE_CREATE_OR_UPDATE:
                 if ($this->existing) {
-                    if ($updatemode === tool_uploaduser_processor::UPDATE_NOTHING) {
+                    if ($this->updatemode === tool_uploaduser_processor::UPDATE_NOTHING) {
                         $this->error('updatemodedoessettonothing',
                             new lang_string('updatemodedoessettonothing', 'tool_uploaduser'));
                         return false;
@@ -574,16 +597,10 @@ class tool_uploaduser_user {
         if ($this->existing) {
             $missingonly = ($updatemode === tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
-
-            // Make sure we are not trying to mess with the front page, though we should never get here!
-            if ($finaldata['id'] == $SITE->id) {
-                $this->error('cannotupdatefrontpage', new lang_string('cannotupdatefrontpage', 
-                    'tool_uploaduser'));
-                return false;
-            }
-
             $this->do = self::DO_UPDATE;
-        } else {
+        } 
+        /*
+        else {
             $finaldata = $this->get_final_create_data($coursedata);
             $this->do = self::DO_CREATE;
         }
@@ -621,5 +638,60 @@ class tool_uploaduser_user {
             }
             return true;
         }
+    }
+
+    /**
+     * Assemble the user data.
+     *
+     * This returns the final data to be passed to update_category().
+     *
+     * @param array $finaldata current data.
+     * @param bool $usedefaults are defaults allowed?
+     * @param array $existingdata existing category data.
+     * @param bool $missingonly ignore fields which are already set.
+     * @return array
+     */
+    protected function get_final_update_data($data, $existingdata, $usedefaults = false, $missingonly = false) {
+        global $DB;
+
+        $dologout = false;
+
+        $this->existing->timemodified = time();
+        profile_load_data($this->existing);
+
+        if ($this->updatemode != tool_uploaduser_processor::UPDATE_NOTHING) {
+            // Changing auth information.
+            if (!empty($existingdata['auth'])) && $data['auth'] {
+                $existingdata['auth'] = $data['auth'];
+                if ($data['auth'] === 'nologin') {
+                    $dologout = true;
+                }
+            }
+            foreach ($this->validfields as $field) {
+                if ($field === 'username' || $field === 'password' ||
+                        $field === 'auth' || $field === 'suspended')
+                    continue;
+
+                if (!$data[$field] || !$existingdata[$field]) {
+                    continue;
+                }
+                if ($missingonly) {
+                    if ($existingdata[$field]) {
+                        continue;
+                    }
+                } else if ($this->updatemode === tool_uploaduser_processor::UPDATE_ALL_WITH_SATA_OR_DEFAULTS) {
+                    // Override everything.
+
+                } else if ($this->updatemode === tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_ONLY) {
+                    if (!empty($this->defaults[$field]) {
+                        // Do not override with form defaults.
+                        continue;
+                    }
+                }
+            }
+        }
+
+
+        return $newdata;
     }
 }
