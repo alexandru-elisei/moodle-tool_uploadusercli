@@ -235,6 +235,9 @@ class tool_uploaduser_processor {
                     $deleted++;
                 }
                 
+                print "PROCESSOR::status:\n";
+                var_dump($status);
+
                 $data = array_merge($data, $user->get_finaldata(), array('id' => $user->get_id()));
                 $tracker->output($this->linenum, true, $status, $data);
             } else {
