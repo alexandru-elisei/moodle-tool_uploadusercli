@@ -309,6 +309,23 @@ class tool_uploaduser_user {
     }
 
     /**
+     * Delete the current user.
+     *
+     * @return bool
+     */
+    protected function delete() {
+        global $DB;
+
+        try {
+            $ret = delete_user($this->existing);
+        }
+        catch (moodle_exception $e) {
+            return false;
+        }
+        return $ret;
+    }
+
+    /**
      * Validates and prepares the data.
      *
      * @return bool false is any error occured.
@@ -579,4 +596,30 @@ class tool_uploaduser_user {
         return true;
     }
 
+    /**
+     * Proceed with the import of the user.
+     *
+     * @return void
+     */
+    public function proceed() {
+        if (!$this->prepared) {
+            throw new coding_exception('The course has not been prepared.');
+        } else if ($this->has_errors()) {
+            throw new moodle_exception('Cannot proceed, errors were detected.');
+        } else if ($this->processstarted) {
+            throw new coding_exception('The process has already been started.');
+        }
+        $this->processstarted = true;
+
+        if ($this->do === self::DO_DELETE) {
+            if ($this->delete()) {
+                $this->set_status('userdeleted', 
+                    new lang_string('userdeleted', 'tool_uploaduser'));
+            } else {
+                $this->error('usernotdeletederror', new lang_string('usernotdeletederror',
+                    'error'));
+            }
+            return true;
+        }
+    }
 }

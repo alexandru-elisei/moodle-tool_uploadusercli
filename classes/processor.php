@@ -222,9 +222,7 @@ class tool_uploaduser_processor {
             //var_dump($user);
 
             if ($user->prepare()) {
-                /*
                 $user->proceed();
-                 */
 
                 print "Prepared...\n";
 
@@ -233,7 +231,7 @@ class tool_uploaduser_processor {
                     $created++;
                 } else if (array_key_exists('coursecategoryupdated', $status)) {
                     $updated++;
-                } else if (array_key_exists('coursecategorydeleted', $status)) {
+                } else if (array_key_exists('userdeleted', $status)) {
                     $deleted++;
                 }
                 
