@@ -374,8 +374,6 @@ class tool_uploaduser_user {
         
         // Standardise username.
         if ($this->importoptions['standardise']) {
-            print "USER::Standardising...\n";
-
             $this->username = clean_param($this->username, PARAM_USERNAME);
         }
 
@@ -395,6 +393,10 @@ class tool_uploaduser_user {
             $this->error('mnethostidnotanumber', new lang_string('mnethostidnotanumber',
                 'error'));
             return false;
+        }
+
+        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+            print "USER::Validated mnethostid...\n";
         }
 
         $this->existing = $this->exists();
@@ -418,7 +420,9 @@ class tool_uploaduser_user {
             }
             $this->do = self::DO_DELETE;
 
-            print "USER::deletion queued...\n";
+            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+                print "USER::User deletion queued...\n";
+            }
 
             return true;
         }
@@ -428,6 +432,10 @@ class tool_uploaduser_user {
             $this->error('useridnotanumber', new lang_string('useridnotanumber',
                 'error'));
             return false;
+        }
+
+        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+            print "USER::Validated id field...\n";
         }
  
         // Checking mandatory fields.
@@ -464,7 +472,6 @@ class tool_uploaduser_user {
                 return false;
             }
         }
-        print  "USER::Passed updating/existing checks...\n";
 
         // Preparing final category data.
         $finaldata = new stdClass();
@@ -520,7 +527,9 @@ class tool_uploaduser_user {
 
             $this->do = self::DO_UPDATE;
 
-            print "USER::Renaming queued...\n";
+            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+                print "USER::Renaming queued...\n";
+            }
 
             $this->set_status('userrenamed', new lang_string('userrenamed', 
                 'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata->name)));
@@ -541,8 +550,6 @@ class tool_uploaduser_user {
             }
         }
 
-        print "Before incrementing name...\n";
-
         // If exists, but we only want to create users, increment the username.
         if ($this->existing && $this->mode === tool_uploaduser_processor::MODE_CREATE_ALL) {
             $original = $this->username;
@@ -561,6 +568,10 @@ class tool_uploaduser_user {
                 }
                  */
             }
+
+            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+                print "USER::Name incremented...\n";
+            }
         }  
 
         /*
@@ -573,7 +584,9 @@ class tool_uploaduser_user {
         }
          */
 
-        print "Last check...\n";
+        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+            print "USER::Going through last sanity checks...\n";
+        }
 
         // Ultimate check mode vs. existence.
         switch ($this->mode) {
@@ -615,17 +628,20 @@ class tool_uploaduser_user {
                 return false;
         }
 
-        print "Getting final data...\n";
-
         // Get final data.
         if ($this->existing) {
+
+            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+                print "USER::Getting final update data...\n";
+            }
+
             $missingonly = ($updatemode === tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
 
-            /*
-            print "\nFINAL UPDATE DATA:\n";
-            var_dump($finaldata);
-             */
+            if ($this->debuglevel === tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE) {
+                print "\nUSER::Final update data (function prepare())\n";
+                var_dump($finaldata);
+            }
 
             $this->do = self::DO_UPDATE;
         } 
@@ -649,6 +665,11 @@ class tool_uploaduser_user {
      * @return void
      */
     public function proceed() {
+
+        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+            print "USER::Entering proceed...\n";
+        }
+
         if (!$this->prepared) {
             throw new coding_exception('The course has not been prepared.');
         } else if ($this->has_errors()) {
@@ -659,6 +680,11 @@ class tool_uploaduser_user {
         $this->processstarted = true;
 
         if ($this->do === self::DO_DELETE) {
+
+            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+                print "USER::Deleting...\n";
+            }
+
             if ($this->delete()) {
                 $this->set_status('userdeleted', 
                     new lang_string('userdeleted', 'tool_uploaduser'));

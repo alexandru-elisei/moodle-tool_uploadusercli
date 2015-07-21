@@ -274,7 +274,7 @@ class tool_uploaduser_processor {
                 }
                 
                 if ($this->debuglevel === tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE) {
-                    print "PROCESSOR::User status after proceeding (function execute()):\n";
+                    print "PROCESSOR::user status after proceeding (function execute()):\n";
                     var_dump($status);
                 }
 
@@ -316,7 +316,7 @@ class tool_uploaduser_processor {
             'noemailduplicates'     => $this->noemailduplicates,
             'debuglevel'            => $this->debuglevel,
         );
-        return  new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);
+        return new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);
     }
 
     /**
