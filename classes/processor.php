@@ -41,7 +41,7 @@ class tool_uploaduser_processor {
     const MODE_CREATE_NEW = 1;
 
     /**
-     * Create all users, appending a suffix to the ?????? ??name ???? if the user exists.
+     * Create all users, appending a suffix to the name if the user exists.
      */
     const MODE_CREATE_ALL = 2;
 
@@ -86,19 +86,9 @@ class tool_uploaduser_processor {
     const PASSWORD_MODE_FIELD = 10;
 
     /**
-     * No debug messages.
+     * @var object debug class
      */
-    const DEBUG_LEVEL_NONE = 0;
-
-    /**
-     * A few debug messages.
-     */
-    const DEBUG_LEVEL_LOW = 1;
-
-    /**
-     * Verbose debug messages.
-     */
-    const DEBUG_LEVEL_VERBOSE = 2;
+    protected $debug = null;
 
     /** @var int processor mode. */
     protected $mode;
@@ -195,7 +185,8 @@ class tool_uploaduser_processor {
         }
 
         if (isset($options['debuglevel'])) {
-            $this->debuglevel = $options['debuglevel'];
+            $this->debug = new tool_uploaduser_debug($options['debuglevel']);
+            var_dump($this);
         }
 
         if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {

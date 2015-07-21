@@ -160,9 +160,9 @@ $processoroptions['passwordmode'] = $passwordmodes[$options['passwordmode']];
 
 // Check debug level.
 $debuglevels = array(
-    'none' => tool_uploaduser_processor::DEBUG_LEVEL_NONE,
-    'low' => tool_uploaduser_processor::DEBUG_LEVEL_LOW, 
-    'verbose' => tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE, 
+    'none' => tool_uploaduser_debug::DEBUG_LEVEL_NONE,
+    'low' => tool_uploaduser_debug::DEBUG_LEVEL_LOW, 
+    'verbose' => tool_uploaduser_debug::DEBUG_LEVEL_VERBOSE, 
 );
 
 if (!isset($options['debuglevel']) || !isset($debuglevels[$options['debuglevel']])) {
