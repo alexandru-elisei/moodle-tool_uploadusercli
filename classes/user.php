@@ -84,6 +84,9 @@ class tool_uploaduser_user {
     /** @var int the moodle net host id. */
     protected $mnethostid;
 
+    /** @var int debug level. Matches tool_uploaduser_processor::DEBUG_LEVEL_* */
+    protected $debuglevel;
+
     /** @var array containing options passed from the processor. */
     protected $importoptions = array();
 
@@ -175,6 +178,11 @@ class tool_uploaduser_user {
         } else {
             $this->mnethostid = $rawdata['mnethostid'];
         }
+        if (!empty($importoptions['debuglevel'])) {
+            $this->debuglevel = $importoptions['debuglevel'];
+        } else {
+            $this->debuglevel = tool_uploaduser_processor::DEBUG_LEVEL_NONE;
+        }
 
         $this->rawdata = $rawdata;
         $this->finaldata = new stdClass();
@@ -189,6 +197,11 @@ class tool_uploaduser_user {
 
         // Supported authentification plugins.
         $this->supportedauths = uu_supported_auths();
+
+        if ($this->debuglevel === tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE) {
+            print "\nUSER::new class created (function __construct):\n";
+            var_dump($this);
+        }
     }
 
     /**
@@ -325,13 +338,6 @@ class tool_uploaduser_user {
             $mnethostid = $this->mnethostid;
         }
 
-        /*
-        print "\nEXISTS()::username:\n";
-        var_dump($username);
-        print "mnethostid:\n";
-        var_dump($mnethostid);
-         */
-
         return $DB->get_record('user', array('username' => $username, 'mnethostid' => $mnethostid));
     }
 
@@ -360,10 +366,16 @@ class tool_uploaduser_user {
     public function prepare() {
         global $DB;
 
+        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+            print "USER::Entered prepare...\n";
+        }
+
         $this->prepared = true;
         
         // Standardise username.
         if ($this->importoptions['standardise']) {
+            print "USER::Standardising...\n";
+
             $this->username = clean_param($this->username, PARAM_USERNAME);
         }
 
@@ -372,6 +384,10 @@ class tool_uploaduser_user {
             $this->error('invalidusername', new lang_string('invalidusername',
                 'error'));
             return false;
+        }
+
+        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+            print "USER::Validated username...\n";
         }
 
         // Validate moodle net host id.
@@ -606,8 +622,10 @@ class tool_uploaduser_user {
             $missingonly = ($updatemode === tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
 
+            /*
             print "\nFINAL UPDATE DATA:\n";
             var_dump($finaldata);
+             */
 
             $this->do = self::DO_UPDATE;
         } 

@@ -85,6 +85,21 @@ class tool_uploaduser_processor {
      */
     const PASSWORD_MODE_FIELD = 10;
 
+    /**
+     * No debug messages.
+     */
+    const DEBUG_LEVEL_NONE = 0;
+
+    /**
+     * A few debug messages.
+     */
+    const DEBUG_LEVEL_LOW = 1;
+
+    /**
+     * Verbose debug messages.
+     */
+    const DEBUG_LEVEL_VERBOSE = 2;
+
     /** @var int processor mode. */
     protected $mode;
 
@@ -112,6 +127,9 @@ class tool_uploaduser_processor {
     /** @var bool allow email duplicates. */
     protected $noemailduplicates;
 
+    /** @var int debug level. */
+    protected $debuglevel;
+
     /** @var csv_import_reader. */
     protected $cir;
 
@@ -134,6 +152,7 @@ class tool_uploaduser_processor {
      * @param array $options options of the process
      */
     public function __construct(csv_import_reader $cir, array $options) {
+
 
         // Extra sanity checks
         if (!isset($options['mode']) || !in_array($options['mode'], array(self::MODE_CREATE_NEW, self::MODE_CREATE_ALL,
@@ -175,10 +194,23 @@ class tool_uploaduser_processor {
             $this->noemailduplicates = $options['noemailduplicates'];
         }
 
+        if (isset($options['debuglevel'])) {
+            $this->debuglevel = $options['debuglevel'];
+        }
+
+        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+            print "PROCESSOR::Entered constructor...\n";
+        }
+
         $this->cir = $cir;
         $this->columns = $cir->get_columns();
         $this->validate_csv();
         $this->reset();
+
+        if ($this->debuglevel === tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE) {
+            print "\nPROCESSOR::new class created (function __construct):\n";
+            var_dump($this);
+        }
     }
 
     /**
@@ -190,6 +222,10 @@ class tool_uploaduser_processor {
     public function execute($tracker = null) {
 
         global $DB;
+
+        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+            print "PROCESSOR::Entered execute...\n";
+        }
 
         if ($this->processstarted) {
             throw new moodle_exception('process_already_started', 'error');
@@ -224,7 +260,9 @@ class tool_uploaduser_processor {
             if ($user->prepare()) {
                 $user->proceed();
 
-                print "Prepared...\n";
+                if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+                    print "PROCESSOR::User prepared...\n";
+                }
 
                 $status = $user->get_statuses();
                 if (array_key_exists('coursecategoriescreated', $status)) {
@@ -235,12 +273,19 @@ class tool_uploaduser_processor {
                     $deleted++;
                 }
                 
-                print "PROCESSOR::status:\n";
-                var_dump($status);
+                if ($this->debuglevel === tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE) {
+                    print "PROCESSOR::User status after proceeding (function execute()):\n";
+                    var_dump($status);
+                }
 
                 $data = array_merge($data, $user->get_finaldata(), array('id' => $user->get_id()));
                 $tracker->output($this->linenum, true, $status, $data);
             } else {
+
+                if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
+                    print "PROCESSOR::Prepare user failed...\n";
+                }
+
                 $errors++;
                 $tracker->output($this->linenum, false, $user->get_errors(), $data);
 
@@ -269,6 +314,7 @@ class tool_uploaduser_processor {
             'updatepassword'        => $this->updatepassword,
             'allowsuspends'         => $this->allowsuspends,
             'noemailduplicates'     => $this->noemailduplicates,
+            'debuglevel'            => $this->debuglevel,
         );
         return  new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);
     }
@@ -296,9 +342,6 @@ class tool_uploaduser_processor {
      * @return void
      */
     protected function validate_csv() {
-
-        print "Validating csv...\n";
-
         if (empty($this->columns)) {
             throw new moodle_exception('cannot_read_tmp_file', 'error');
         }
@@ -310,9 +353,6 @@ class tool_uploaduser_processor {
      * @return void.
      */
     protected function reset() {
-
-        print "Resetting processor...\n";
-
         $this->processstarted = false;
         $this->linenum = 0;
         $this->cir->init();

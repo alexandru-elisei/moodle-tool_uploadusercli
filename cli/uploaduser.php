@@ -48,6 +48,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'allowsuspends' => true,
     'noemailduplicates' => false,
     'standardise' => true,
+    'debuglevel' => 'none',
 ),
 array(
     'h' => 'help',
@@ -76,6 +77,7 @@ Options:
 --updatepassword           Update existing user password: false (default) or true
 --allowsuspends            Allow suspending or activating of accounts: true (default) false
 --noemailduplicates        Do not allow duplicate email addresses: true (default) or false
+--debuglevel               Debug level: none (default), low, verbose
 
 
 Example:
@@ -142,6 +144,7 @@ if (($processoroptions['mode'] === tool_uploaduser_processor::MODE_CREATE_OR_UPD
 }
 $processoroptions['updatemode'] = $updatemodes[$options['updatemode']];
 
+// Check that password creation mode is valid.
 $passwordmodes = array(
     'generate' => tool_uploaduser_processor::PASSWORD_MODE_GENERATE,
     'field' => tool_uploaduser_processor::PASSWORD_MODE_FIELD, 
@@ -153,6 +156,20 @@ if (!isset($options['passwordmode']) || !isset($passwordmodes[$options['password
     die();
 }
 $processoroptions['passwordmode'] = $passwordmodes[$options['passwordmode']];
+
+// Check debug level.
+$debuglevels = array(
+    'none' => tool_uploaduser_processor::DEBUG_LEVEL_NONE,
+    'low' => tool_uploaduser_processor::DEBUG_LEVEL_LOW, 
+    'verbose' => tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE, 
+);
+
+if (!isset($options['debuglevel']) || !isset($debuglevels[$options['debuglevel']])) {
+    echo get_string('invaliddebuglevel', 'tool_uploaduser')."\n";
+    echo $help;
+    die();
+}
+$processoroptions['debuglevel'] = $debuglevels[$options['debuglevel']];
 
 // File.
 if (!empty($options['file'])) {
