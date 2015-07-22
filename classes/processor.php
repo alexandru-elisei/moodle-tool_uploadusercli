@@ -86,6 +86,21 @@ class tool_uploaduser_processor {
      */
     const PASSWORD_MODE_FIELD = 10;
 
+    /**
+     * Do not force any password changes.
+     */
+    const FORCE_PASSWORD_CHANGE_NONE = 11;
+
+    /**
+     * Force only users with a weak password to change it.
+     */
+    const FORCE_PASSWORD_CHANGE_WEAK = 12;
+
+    /**
+     * Force all users to change their passwords.
+     */
+    const FORCE_PASSWORD_CHANGE_ALL = 13;
+
     /** @var int debug level. */
     protected $debuglevel;
 
@@ -97,6 +112,9 @@ class tool_uploaduser_processor {
 
     /** @var int password creation mode. */
     protected $passwordmode;
+
+    /** @var int force user password changing. */
+    protected $forcepasswordchange;
 
     /** @var bool are renames allowed. */
     protected $allowrenames;
@@ -173,6 +191,10 @@ class tool_uploaduser_processor {
         }
         if (isset($options['noemailduplicates'])) {
             $this->noemailduplicates = $options['noemailduplicates'];
+        }
+        $this->forcepasswordchange = self::FORCE_PASSWORD_CHANGE_WEAK;
+        if (isset($options['forcepasswordchange'])) {
+            $this->forcepasswordchange = $options['forcepasswordchange'];
         }
         $this->debuglevel = NONE;
         if (isset($options['debuglevel'])) {
@@ -282,6 +304,7 @@ class tool_uploaduser_processor {
             'updatepassword'        => $this->updatepassword,
             'allowsuspends'         => $this->allowsuspends,
             'noemailduplicates'     => $this->noemailduplicates,
+            'forcepasswordchange'   => $this->forcepasswordchange,
             'debuglevel'            => $this->debuglevel,
         );
         return new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);

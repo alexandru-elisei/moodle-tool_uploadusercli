@@ -827,6 +827,7 @@ class tool_uploaduser_user {
                 $weak = !check_password_policy($data->password, $errormsg);
                 if (
                  */
+            }
         }
 
         return $data;

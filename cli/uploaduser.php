@@ -50,6 +50,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'noemailduplicates' => false,
     'standardise' => true,
     'debuglevel' => 'none',
+    'forcepasswordchange' => 'weak',
 ),
 array(
     'h' => 'help',
@@ -78,8 +79,8 @@ Options:
 --updatepassword           Update existing user password: false (default) or true
 --allowsuspends            Allow suspending or activating of accounts: true (default) false
 --noemailduplicates        Do not allow duplicate email addresses: true (default) or false
---debuglevel               Debug level: none (default), low, verbose
-
+--debuglevel               Debug level: none (default), low or verbose
+--forcepasswordchange      Force users to reset their passwords: none, weak (default), all
 
 Example:
 \$sudo -u www-data /usr/bin/php admin/tool/uploaduser/cli/uploaduser.php --mode=createnew \\
@@ -99,18 +100,12 @@ if ($options['help']) {
 echo "Moodle user uploader running ...\n\n";
 
 $processoroptions = array(
-    'allowdeletes' => (is_bool($options['allowdeletes']) && $options['allowdeletes']
-        ) || (core_text::strtolower($options['allowdeletes']) === 'true'),
-    'allowrenames' => (is_bool($options['allowrenames']) && $options['allowrenames']
-        ) || (core_text::strtolower($options['allowrenames']) === 'true'),
-    'standardise' => (is_bool($options['standardise']) && $options['standardise']
-        ) || (core_text::strtolower($options['standardise']) === 'true'),
-    'updatepassword' => (is_bool($options['updatepassword']) && $options['updatepassword']
-        ) || (core_text::strtolower($options['updatepassword']) === 'true'),
-    'allowsuspends' => (is_bool($options['allowsuspends']) && $options['allowsuspends']
-        ) || (core_text::strtolower($options['allowsuspends']) === 'true'),
-    'noemailduplicates' => (is_bool($options['noemailduplicates']) && $options['noemailduplicates']
-        ) || (core_text::strtolower($options['noemailduplicates']) === 'true'),
+    'allowdeletes' => (core_text::strtolower($options['allowdeletes']) == 'true'),
+    'allowrenames' => (core_text::strtolower($options['allowrenames']) == 'true'),
+    'standardise' => (is_bool($options['standardise']) && $options['standardise']),
+    'updatepassword' => (core_text::strtolower($options['updatepassword']) == 'true'),
+    'allowsuspends' => (core_text::strtolower($options['allowsuspends']) == 'true'),
+    'noemailduplicates' => (core_text::strtolower($options['noemailduplicates']) == 'true'),
 );
 
 // Confirm that the mode is valid.
@@ -145,6 +140,7 @@ if (($processoroptions['mode'] === tool_uploaduser_processor::MODE_CREATE_OR_UPD
 }
 $processoroptions['updatemode'] = $updatemodes[$options['updatemode']];
 
+
 // Check that password creation mode is valid.
 $passwordmodes = array(
     'generate' => tool_uploaduser_processor::PASSWORD_MODE_GENERATE,
@@ -157,6 +153,25 @@ if (!isset($options['passwordmode']) || !isset($passwordmodes[$options['password
     die();
 }
 $processoroptions['passwordmode'] = $passwordmodes[$options['passwordmode']];
+
+// Check if enforcing password changing is valid.
+$forcepasswordchanges = array(
+    'none' => tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_NONE,
+    'weak' => tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_WEAK,
+    'all' => tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_ALL,
+);
+
+var_dump($options);
+var_dump($forcepasswordchanges);
+
+if (!isset($options['forcepasswordchange']) || !isset($forcepasswordchanges[$options['forcepasswordchange']])) {
+    echo get_string('invalidpasswordenforcingmode', 'tool_uploaduser')."\n";
+    echo $help;
+    die();
+}
+$processoroptions['forcepasswordchange'] = $forcepasswordchanges[$options['forcepasswordchange']];
+
+var_dump($processoroptions);
 
 // Check debug level.
 $debuglevels = array(
