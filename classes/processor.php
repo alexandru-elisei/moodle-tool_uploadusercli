@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/datalib.php');
+#require_once('debug.php');
 
 /**
  * Processor class.
@@ -85,10 +86,8 @@ class tool_uploaduser_processor {
      */
     const PASSWORD_MODE_FIELD = 10;
 
-    /**
-     * @var object debug class
-     */
-    protected $debug = null;
+    /** @var int debug level. */
+    protected $debuglevel;
 
     /** @var int processor mode. */
     protected $mode;
@@ -117,9 +116,6 @@ class tool_uploaduser_processor {
     /** @var bool allow email duplicates. */
     protected $noemailduplicates;
 
-    /** @var int debug level. */
-    protected $debuglevel;
-
     /** @var csv_import_reader. */
     protected $cir;
 
@@ -142,7 +138,6 @@ class tool_uploaduser_processor {
      * @param array $options options of the process
      */
     public function __construct(csv_import_reader $cir, array $options) {
-
 
         // Extra sanity checks
         if (!isset($options['mode']) || !in_array($options['mode'], array(self::MODE_CREATE_NEW, self::MODE_CREATE_ALL,
@@ -167,41 +162,31 @@ class tool_uploaduser_processor {
         if (isset($options['standardise'])) {
             $this->standardise = $options['standardise'];
         }
-
         if (isset($options['updatepassword'])) {
             $this->updatepassword = $options['updatepassword'];
         }
-
         if (isset($options['passwordmode'])) {
             $this->passwordmode = $options['passwordmode'];
         }
-
         if (isset($options['allowsuspends'])) {
             $this->allowsuspends = $options['allowsuspends'];
         }
-
         if (isset($options['noemailduplicates'])) {
             $this->noemailduplicates = $options['noemailduplicates'];
         }
-
+        $this->debuglevel = NONE;
         if (isset($options['debuglevel'])) {
-            $this->debug = new tool_uploaduser_debug($options['debuglevel']);
-            var_dump($this);
+            $this->debuglevel = $options['debuglevel'];
         }
 
-        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-            print "PROCESSOR::Entered constructor...\n";
-        }
+        tool_uploaduser_debug::show("Entered constructor.", LOW, $this->debuglevel, "PROCESSOR");
 
         $this->cir = $cir;
         $this->columns = $cir->get_columns();
         $this->validate_csv();
         $this->reset();
 
-        if ($this->debuglevel === tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE) {
-            print "\nPROCESSOR::new class created (function __construct):\n";
-            var_dump($this);
-        }
+        tool_uploaduser_debug::show("New class created", VERBOSE, $this->debuglevel, "PROCESSOR", "__construct", $this);
     }
 
     /**
@@ -214,9 +199,7 @@ class tool_uploaduser_processor {
 
         global $DB;
 
-        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-            print "PROCESSOR::Entered execute...\n";
-        }
+        tool_uploaduser_debug::show("Entered execute.", LOW, $this->debuglevel, "PROCESSOR");
 
         if ($this->processstarted) {
             throw new moodle_exception('process_already_started', 'error');
@@ -251,9 +234,7 @@ class tool_uploaduser_processor {
             if ($user->prepare()) {
                 $user->proceed();
 
-                if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-                    print "PROCESSOR::User prepared...\n";
-                }
+                tool_uploaduser_debug::show("User prepared.", LOW, $this->debuglevel, "PROCESSOR");
 
                 $status = $user->get_statuses();
                 if (array_key_exists('coursecategoriescreated', $status)) {
@@ -264,18 +245,14 @@ class tool_uploaduser_processor {
                     $deleted++;
                 }
                 
-                if ($this->debuglevel === tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE) {
-                    print "PROCESSOR::user status after proceeding (function execute()):\n";
-                    var_dump($status);
-                }
+                tool_uploaduser_debug::show("User prepared.", LOW, $this->debuglevel, 
+                    "PROCESSOR", "execute", $status);
 
                 $data = array_merge($data, $user->get_finaldata(), array('id' => $user->get_id()));
                 $tracker->output($this->linenum, true, $status, $data);
             } else {
 
-                if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-                    print "PROCESSOR::Prepare user failed...\n";
-                }
+                tool_uploaduser_debug::show("User prepare failed.", LOW, $this->debuglevel, "PROCESSOR");
 
                 $errors++;
                 $tracker->output($this->linenum, false, $user->get_errors(), $data);

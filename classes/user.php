@@ -84,7 +84,7 @@ class tool_uploaduser_user {
     /** @var int the moodle net host id. */
     protected $mnethostid;
 
-    /** @var int debug level. Matches tool_uploaduser_processor::DEBUG_LEVEL_* */
+    /** @var int debug level. */
     protected $debuglevel;
 
     /** @var array containing options passed from the processor. */
@@ -178,10 +178,9 @@ class tool_uploaduser_user {
         } else {
             $this->mnethostid = $rawdata['mnethostid'];
         }
+        $this->debuglevel = NONE;
         if (!empty($importoptions['debuglevel'])) {
             $this->debuglevel = $importoptions['debuglevel'];
-        } else {
-            $this->debuglevel = tool_uploaduser_processor::DEBUG_LEVEL_NONE;
         }
 
         $this->rawdata = $rawdata;
@@ -198,10 +197,8 @@ class tool_uploaduser_user {
         // Supported authentification plugins.
         $this->supportedauths = uu_supported_auths();
 
-        if ($this->debuglevel === tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE) {
-            print "\nUSER::new class created (function __construct):\n";
-            var_dump($this);
-        }
+        tool_uploaduser_debug::show("New class created", VERBOSE, $this->debuglevel,
+            "USER", "__construct", $this);
     }
 
     /**
@@ -366,9 +363,7 @@ class tool_uploaduser_user {
     public function prepare() {
         global $DB;
 
-        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-            print "USER::Entered prepare...\n";
-        }
+        tool_uploaduser_debug::show("Entered prepare.", LOW, $this->debuglevel, "USER");
 
         $this->prepared = true;
         
@@ -384,9 +379,7 @@ class tool_uploaduser_user {
             return false;
         }
 
-        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-            print "USER::Validated username...\n";
-        }
+        tool_uploaduser_debug::show("Validated username.", LOW, $this->debuglevel, "USER");
 
         // Validate moodle net host id.
         if (!is_numeric($this->mnethostid)) {
@@ -395,9 +388,7 @@ class tool_uploaduser_user {
             return false;
         }
 
-        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-            print "USER::Validated mnethostid...\n";
-        }
+        tool_uploaduser_debug::show("Validated mnethostid.", LOW, $this->debuglevel, "USER");
 
         $this->existing = $this->exists();
 
@@ -420,9 +411,7 @@ class tool_uploaduser_user {
             }
             $this->do = self::DO_DELETE;
 
-            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-                print "USER::User deletion queued...\n";
-            }
+            tool_uploaduser_debug::show("User deletion queued.", LOW, $this->debuglevel, "USER");
 
             return true;
         }
@@ -434,9 +423,7 @@ class tool_uploaduser_user {
             return false;
         }
 
-        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-            print "USER::Validated id field...\n";
-        }
+        tool_uploaduser_debug::show("Valided id field.", LOW, $this->debuglevel, "USER");
  
         // Checking mandatory fields.
         foreach (self::$mandatoryfields as $key => $field) {
@@ -527,9 +514,7 @@ class tool_uploaduser_user {
 
             $this->do = self::DO_UPDATE;
 
-            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-                print "USER::Renaming queued...\n";
-            }
+            tool_uploaduser_debug::show("Renaming queued.", LOW, $this->debuglevel, "USER");
 
             $this->set_status('userrenamed', new lang_string('userrenamed', 
                 'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata->name)));
@@ -569,9 +554,7 @@ class tool_uploaduser_user {
                  */
             }
 
-            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-                print "USER::Name incremented...\n";
-            }
+            tool_uploaduser_debug::show("Username incremented.", LOW, $this->debuglevel, "USER");
         }  
 
         /*
@@ -584,9 +567,7 @@ class tool_uploaduser_user {
         }
          */
 
-        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-            print "USER::Going through last sanity checks...\n";
-        }
+        tool_uploaduser_debug::show("Last sanity checks...", LOW, $this->debuglevel, "USER");
 
         // Ultimate check mode vs. existence.
         switch ($this->mode) {
@@ -631,17 +612,13 @@ class tool_uploaduser_user {
         // Get final data.
         if ($this->existing) {
 
-            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-                print "USER::Getting final update data...\n";
-            }
+            tool_uploaduser_debug::show("Getting final update data.", LOW, $this->debuglevel, "USER");
 
             $missingonly = ($updatemode === tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
 
-            if ($this->debuglevel === tool_uploaduser_processor::DEBUG_LEVEL_VERBOSE) {
-                print "\nUSER::Final update data (function prepare())\n";
-                var_dump($finaldata);
-            }
+            tool_uploaduser_debug::show("Final update data.", VERBOSE, $this->debuglevel,
+                "USER", "prepare", $finaldata);
 
             $this->do = self::DO_UPDATE;
         } 
@@ -666,9 +643,7 @@ class tool_uploaduser_user {
      */
     public function proceed() {
 
-        if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-            print "USER::Entering proceed...\n";
-        }
+        tool_uploaduser_debug::show("Entering proceed.", LOW, $this->debuglevel, "USER");
 
         if (!$this->prepared) {
             throw new coding_exception('The course has not been prepared.');
@@ -681,9 +656,7 @@ class tool_uploaduser_user {
 
         if ($this->do === self::DO_DELETE) {
 
-            if ($this->debuglevel >= tool_uploaduser_processor::DEBUG_LEVEL_LOW) {
-                print "USER::Deleting...\n";
-            }
+            tool_uploaduser_debug::show("Deleting.", LOW, $this->debuglevel, "USER");
 
             if ($this->delete()) {
                 $this->set_status('userdeleted', 
