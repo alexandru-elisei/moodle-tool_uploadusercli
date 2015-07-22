@@ -48,6 +48,9 @@ require_once($CFG->libdir . '/moodlelib.php');
 // Verified, actually needed.
 require_once($CFG->libdir . '/weblib.php');
 
+// Verified, actually needed.
+require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
+
 /**
  * User class.
  *
@@ -304,7 +307,7 @@ class tool_uploaduser_user {
      * @return void
      */
     public function get_finaldata() {
-        return $this->finaldata;
+        return (array) $this->finaldata;
     }
 
     /**
@@ -668,6 +671,8 @@ class tool_uploaduser_user {
 
             tool_uploaduser_debug::show("Deleting.", LOW, $this->debuglevel, "USER");
 
+            $this->finaldata = $this->existing;
+            $this->id = $this->existing->id;
             if ($this->delete()) {
                 $this->set_status('userdeleted', 
                     new lang_string('userdeleted', 'tool_uploaduser'));
@@ -686,8 +691,8 @@ class tool_uploaduser_user {
             }
             $this->id = $this->finaldata->id;
 
-            $this->finaldata = uu_pre_process_custom_profile_data($this->finadata);
-            profile_save($this->finaldata);
+            $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
+            profile_save_data($this->finaldata);
 
             if ($this->needpasswordchange) {
                 set_user_preference('auth_forcepasswordchange', 1, $this->finaldata);
@@ -698,7 +703,7 @@ class tool_uploaduser_user {
                 set_user_preference('create_password', 1, $this->finaldata);
             }
             $this->set_status('useradded',
-                new lang_string('useradded', 'tool_uploaduser'));
+                new lang_string('newuser'));
         }
 
     }

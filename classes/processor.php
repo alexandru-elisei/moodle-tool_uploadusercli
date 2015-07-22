@@ -25,7 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/datalib.php');
-#require_once('debug.php');
 
 /**
  * Processor class.
@@ -258,7 +257,7 @@ class tool_uploaduser_processor {
                 tool_uploaduser_debug::show("User prepared.", LOW, $this->debuglevel, "PROCESSOR");
 
                 $status = $user->get_statuses();
-                if (array_key_exists('coursecategoriescreated', $status)) {
+                if (array_key_exists('useradded', $status)) {
                     $created++;
                 } else if (array_key_exists('coursecategoryupdated', $status)) {
                     $updated++;
