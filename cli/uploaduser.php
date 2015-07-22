@@ -161,17 +161,12 @@ $forcepasswordchanges = array(
     'all' => tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_ALL,
 );
 
-var_dump($options);
-var_dump($forcepasswordchanges);
-
 if (!isset($options['forcepasswordchange']) || !isset($forcepasswordchanges[$options['forcepasswordchange']])) {
     echo get_string('invalidpasswordenforcingmode', 'tool_uploaduser')."\n";
     echo $help;
     die();
 }
 $processoroptions['forcepasswordchange'] = $forcepasswordchanges[$options['forcepasswordchange']];
-
-var_dump($processoroptions);
 
 // Check debug level.
 $debuglevels = array(

@@ -267,7 +267,7 @@ class tool_uploaduser_processor {
                     $deleted++;
                 }
                 
-                tool_uploaduser_debug::show("User prepared.", LOW, $this->debuglevel, 
+                tool_uploaduser_debug::show("User prepared.", VERBOSE, $this->debuglevel, 
                     "PROCESSOR", "execute", $status);
 
                 $data = array_merge($data, $user->get_finaldata(), array('id' => $user->get_id()));
@@ -300,7 +300,7 @@ class tool_uploaduser_processor {
             'allowdeletes'          => $this->allowdeletes,
             'allowrenames'          => $this->allowrenames,
             'standardise'           => $this->standardise,
-            'paswordmode'           => $this->passwordmode,
+            'passwordmode'          => $this->passwordmode,
             'updatepassword'        => $this->updatepassword,
             'allowsuspends'         => $this->allowsuspends,
             'noemailduplicates'     => $this->noemailduplicates,

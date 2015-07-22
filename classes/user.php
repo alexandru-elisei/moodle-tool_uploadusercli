@@ -789,7 +789,7 @@ class tool_uploaduser_user {
         } catch (Exception $e) {
             return false;
         }
-        if (!isset($supportedauths[$data->auth])) {
+        if (!isset($this->supportedauths[$data->auth])) {
             $this->set_status('userauthunsupported', new lang_string(
                         'userauthunsupported', 'error'));
         }
@@ -804,15 +804,17 @@ class tool_uploaduser_user {
             }
         }
         if (!validate_email($data->email)) {
-            $this->set_status('useremailduplicate', new lang_string('invalidemail',
+            $this->set_status('invalidemail', new lang_string('invalidemail',
                     'warning'));
         }
 
         $isinternalauth = $auth->is_internal();
         $forcechangepassword = false;
 
-
         if ($isinternalauth) {
+
+            tool_uploaduser_debug::show("Checking password.", LOW, $this->debuglevel, "USER");
+
             if (empty($data->password)) {
                 if ($this->importoptions['passwordmode'] === tool_uploaduser_processor::PASSWORD_MODE_GENERATE) {
                     $data->password = 'to be generated';
