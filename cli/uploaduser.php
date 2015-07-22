@@ -97,7 +97,7 @@ if ($options['help']) {
     die();
 }
 
-echo "Moodle user uploader running ...\n\n";
+//echo "Moodle user uploader running ...\n\n";
 
 $processoroptions = array(
     'allowdeletes' => ($options['allowdeletes'] === true ||
@@ -223,6 +223,4 @@ if ($readcount === false) {
 unset($content);
 
 $processor = new tool_uploaduser_processor($cir, $processoroptions);
-$processor->execute();
-
-print "\nDone.\n";
+$processor->execute(new tool_uploaduser_tracker(tool_uploaduser_tracker::NO_OUTPUT));

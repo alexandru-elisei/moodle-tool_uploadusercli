@@ -52,7 +52,7 @@ class tool_uploaduser_tracker {
     /**
      * @var array columns to display.
      */
-    protected $columns = array('line', 'result', 'username', 'firstname', 'lastname', 'id', 'status');
+    protected $columns = array('line', 'result', 'username', 'firstname', 'lastname',  'email', 'id', 'status');
 
     /**
      * @var int row number.
@@ -103,9 +103,10 @@ class tool_uploaduser_tracker {
             $message = array(
                 $line,
                 $outcome ? 'OK' : 'NOK',
-                isset($data['username']) ? $data['username'] : 'N/A',
-                isset($data['firstname']) ? $data['firstname'] : 'N/A',
-                isset($data['lastname']) ? $data['lastname'] : 'N/A',
+                isset($data['username']) ? $data['username'] : 'ERR',
+                isset($data['firstname']) ? $data['firstname'] : 'ERR',
+                isset($data['lastname']) ? $data['lastname'] : 'ERR',
+                isset($data['email']) ? $data['email'] : 'ERR',
                 isset($data['id']) ? $data['id'] : 'N/A',
             );
             $this->buffer->output(implode("\t", $message));
