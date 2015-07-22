@@ -84,6 +84,9 @@ class tool_uploaduser_user {
     /** @var int the moodle net host id. */
     protected $mnethostid;
 
+    /** @var int if the user will need to change his/her password. */
+    protected $needpasswordchange = false;
+
     /** @var int debug level. */
     protected $debuglevel;
 
@@ -673,7 +676,31 @@ class tool_uploaduser_user {
                     'error'));
             }
             return true;
+        } else if ($this->do === self::DO_CREATE) {
+            try {
+                $this->finaldata->id = user_create_user($this->finaldata, false, false);
+            }
+            catch (Exception $e) {
+                $this->error('errorcreatinguser',
+                    new lang_string('errorcreatinguser', 'tool_uploaduser'));
+            }
+            $this->id = $this->finaldata->id;
+
+            $this->finaldata = uu_pre_process_custom_profile_data($this->finadata);
+            profile_save($this->finaldata);
+
+            if ($this->needpasswordchange) {
+                set_user_preference('auth_forcepasswordchange', 1, $this->finaldata);
+
+                tool_uploaduser_debug::show("Forced password change.", LOW, $this->debuglevel, "USER");
+            }
+            if ($this->finaldata->password === 'to be generated') {
+                set_user_preference('create_password', 1, $this->finaldata);
+            }
+            $this->set_status('useradded',
+                new lang_string('useradded', 'tool_uploaduser'));
         }
+
     }
 
     /**
@@ -808,8 +835,16 @@ class tool_uploaduser_user {
                     'warning'));
         }
 
+        if (empty($data->lang)) {
+            $data->lang ='';
+        } else if (clean_param($data->lang, PARAM_LANG) === '') {
+            $this->set_status('cannotfindlang', new lang_string('cannotfindlang',
+                'error'));
+            $data->lang='';
+        }
+
         $isinternalauth = $auth->is_internal();
-        $forcechangepassword = false;
+        $this->needpasswordchange = false;
 
         if ($isinternalauth) {
 
@@ -824,14 +859,24 @@ class tool_uploaduser_user {
                     return false;
                 }
             } else {
-                /*
-                $errormsg = null;
-                $weak = !check_password_policy($data->password, $errormsg);
-                if (
-                 */
+                $errmsg = null;
+                $resetpasswords = isset($CFG->passwordpolicy) ? $this->importoptions['forcepasswordchange'] : tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_NONE;
+                $weak = !check_password_policy($data->password, $errmsg);
+                if ($resetpasswords == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_ALL ||
+                        ($resetpasswords == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_WEAK &&
+                        $weak)) {
+                    $this->needpasswordchange = true;
+                }
+                // Use a low cost factor when generating hash so it's not too
+                // slow when uploading lots of users. Hashes will be 
+                // automatically updated the first time the user logs in.
+                $data->password = hash_internal_user_password($data->password, true);
             }
+        } else {
+            $data->password = AUTH_PASSWORD_NOT_CACHED;
         }
-
+        // insert_record only keeps the valid fields for the record
+        //$data->id = user_create_user($data, false, false);
         return $data;
     }
 }
