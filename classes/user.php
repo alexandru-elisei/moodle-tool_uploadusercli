@@ -622,13 +622,20 @@ class tool_uploaduser_user {
 
             $this->do = self::DO_UPDATE;
         } 
-        /*
         else {
-            $finaldata = $this->get_final_create_data($coursedata);
-            $this->do = self::DO_CREATE;
+            $finaldata = $this->get_final_create_data($finaldata);
+            if (!$finaldata) {
+                //tool_uploaduser_debug::show("Entering get_final_create_data.", LOW, $this->debuglevel, "USER");
+                $this->error('usernotaddederror', new lang_string('usernotaddederror',
+                    'error'));
+                return false;
+            } else {
+                tool_uploaduser_debug::show("Creation queued.", LOW, $this->debuglevel, "USER");
+                tool_uploaduser_debug::show("Finaldata:", VERBOSE, $this->debuglevel, 
+                    "USER", "prepare", $finaldata);
+                $this->do = self::DO_CREATE;
+            }
         }
-
-         */
 
         // Saving data.
         $finaldata->username = $this->username;
@@ -726,7 +733,7 @@ class tool_uploaduser_user {
                                 'error'));
                         } else {
                             $this->set_status('useremailduplicate', new lang_string('useremailduplicate',
-                                'warning'));
+                                'error'));
                         }
                     }
                     if (!validate_email($data->email)) {
@@ -748,5 +755,80 @@ class tool_uploaduser_user {
         }
 
         return $existingdata;
+    }
+
+    /**
+     * Assemble the user data based on defaults.
+     * This returns the final data to be passed to create_user().
+     *
+     * @param array data current data.
+     * @return array
+     */
+    protected function get_final_create_data($data) {
+        global $CFG, $DB;
+
+        tool_uploaduser_debug::show("Entering get_final_create_data.", LOW, $this->debuglevel, "USER");
+
+        $data->confirmed = 1;
+        $data->timemodified = time();
+        $data->timecreated = time();
+        // Only local accounts.
+        $data->mnethostid = $CFG->mnet_localhost_id;
+
+        if (!isset($data->suspended) || $data->suspended === '') {
+            $data->suspended = 0;
+        } else {
+            $data->suspended = $data->suspended ? 1 : 0;
+        }
+        if (empty($data->auth)) {
+            $data->auth = 'manual';
+        }
+       
+        try {
+            $auth = get_auth_plugin($data->auth);
+        } catch (Exception $e) {
+            return false;
+        }
+        if (!isset($supportedauths[$data->auth])) {
+            $this->set_status('userauthunsupported', new lang_string(
+                        'userauthunsupported', 'error'));
+        }
+
+        if ($DB->record_exists('user', array('email' => $data->email))) {
+            if ($this->importoptions['noemailduplicates']) {
+                $this->error('useremailduplicate', new lang_string('useremailduplicate',
+                        'error'));
+            } else {
+                $this->set_status('useremailduplicate', new lang_string('useremailduplicate',
+                        'error'));
+            }
+        }
+        if (!validate_email($data->email)) {
+            $this->set_status('useremailduplicate', new lang_string('invalidemail',
+                    'warning'));
+        }
+
+        $isinternalauth = $auth->is_internal();
+        $forcechangepassword = false;
+
+
+        if ($isinternalauth) {
+            if (empty($data->password)) {
+                if ($this->importoptions['passwordmode'] === tool_uploaduser_processor::PASSWORD_MODE_GENERATE) {
+                    $data->password = 'to be generated';
+                } else {
+                    $this->error('missingfield', new lang_string('missingfield',
+                        'error', 'password'));
+                    return false;
+                }
+            } else {
+                /*
+                $errormsg = null;
+                $weak = !check_password_policy($data->password, $errormsg);
+                if (
+                 */
+        }
+
+        return $data;
     }
 }
