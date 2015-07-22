@@ -306,9 +306,6 @@ class tool_uploaduser_processor {
             'forcepasswordchange'   => $this->forcepasswordchange,
             'debuglevel'            => $this->debuglevel,
         );
-
-        print "created importoptions array\n";
-
         return new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);
     }
 

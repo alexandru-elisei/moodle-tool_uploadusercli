@@ -100,12 +100,18 @@ if ($options['help']) {
 echo "Moodle user uploader running ...\n\n";
 
 $processoroptions = array(
-    'allowdeletes' => (core_text::strtolower($options['allowdeletes']) == 'true'),
-    'allowrenames' => (core_text::strtolower($options['allowrenames']) == 'true'),
-    'standardise' => (is_bool($options['standardise']) && $options['standardise']),
-    'updatepassword' => (core_text::strtolower($options['updatepassword']) == 'true'),
-    'allowsuspends' => (core_text::strtolower($options['allowsuspends']) == 'true'),
-    'noemailduplicates' => (core_text::strtolower($options['noemailduplicates']) == 'true'),
+    'allowdeletes' => ($options['allowdeletes'] === true ||
+                core_text::strtolower($options['allowdeletes']) == 'true'),
+    'allowrenames' => ($options['allowrenames'] === true ||
+                core_text::strtolower($options['allowrenames']) == 'true'),
+    'standardise' => ($options['standardise'] === true ||
+                core_text::strtolower($options['standardise']) == 'true'),
+    'updatepassword' => ($options['updatepassword'] === true || 
+                core_text::strtolower($options['updatepassword']) == 'true'),
+    'allowsuspends' => ($options['allowsuspends'] === true || 
+                core_text::strtolower($options['allowsuspends']) == 'true'),
+    'noemailduplicates' => ($options['noemailduplicates'] === true ||
+                core_text::strtolower($options['noemailduplicates']) == 'true'),
 );
 
 // Confirm that the mode is valid.
