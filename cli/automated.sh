@@ -38,7 +38,7 @@ make_pristine
 no="1"
 create_text "${no}. Creating" "success"\
 	"username,firstname,lastname,email" \
-       	"${new},${new},${new},${new}@mail.com"
+       	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel}
 
 
@@ -46,33 +46,33 @@ php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel}
 ((no++))
 create_text "${no}. Deleting" "success" \
 	"username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdeletes
 
 
 # Deletion (failure - deletes not allowed)
 ((no++))
 create_aux "username,firstname,lastname,email" \
-       	"${new},${new},${new},${new}@mail.com"
+       	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=createnew --file=${test_file}
 make_pristine
 
 create_text "${no}. Deleting" "failure, deletes not allowed"\
 	"username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel}
 
 
 # Deletion (failure - user does not exist)
 ((no++))
 create_aux "username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
 create_text "${no}. Deleting" "failure - user does not exist"\
 	"username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdeletes
 
 
@@ -80,7 +80,7 @@ php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdel
 ((no++))
 create_text "${no}. Deleting" "failure - user admin"\
 	"username,firstname,lastname,email,deleted" \
-       	"admin,${new},${new},${new}@mail.com,1"
+       	"admin,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdeletes
 
 
@@ -88,7 +88,7 @@ php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdel
 ((no++))
 create_text "${no}. Deleting" "failure - user guest"\
 	"username,firstname,lastname,email,deleted" \
-       	"guest,${new},${new},${new}@mail.com,1"
+       	"guest,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdeletes
 
 
@@ -96,7 +96,7 @@ php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdel
 ((no++))
 create_text "${no}. Creation" "failure - mnethostid invalid"\
 	"username,mnethostid" \
-       	"${new},a"
+       	"$new,a"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel}
 
 
@@ -104,7 +104,7 @@ php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel}
 ((no++))
 create_text "${no}. Creating" "failure - invalid id"\
 	"username,firstname,lastname,email,id" \
-       	"guest,${new},${new},${new}@mail.com,a"
+       	"guest,$new,$new,$new@mail.com,a"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdeletes
 
 
@@ -112,24 +112,24 @@ php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdel
 ((no++))
 create_text "${no}. Creating" "failure - missing fields"\
 	"username,firstname,lastname" \
-       	"guest,${new},${new}"
+       	"guest,$new,$new"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel} --allowdeletes
 
 
 # Creation (failure - user exists)
 ((no++))
 create_aux "username,firstname,lastname,email" \
-       	"${new},${new},${new},${new}@mail.com"
+       	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=createnew --file=${test_file}
 make_pristine
 
 create_text "${no}. Creation" "failure - user exists"\
 	"username,firstname,lastname,email" \
-       	"${new},${new},${new},${new}@mail.com"
+       	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=createnew --file=${test_file} ${debuglevel}
 
 create_aux "username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
@@ -137,29 +137,29 @@ make_pristine
 # Updating (failure - user does not exist)
 ((no++))
 create_aux "username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
 create_text "${no}. Updating" "failure - user does not exist"\
 	"username,firstname,lastname,email" \
-       	"${new},${new},${new},${new}@mail.com"
+       	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=update --file=${test_file} ${debuglevel}
 
 
 # Renaming (failure - renaming not allowed)
 create_aux "username,firstname,lastname,email" \
-       	"${new},${new},${new},${new}@mail.com"
+       	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
 create_text "${no}. Renaming" "failure - renaming not allowed"\
 	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new},${new},${new}@mail.com,${new}"
+       	"newusername,$new,$new,$new@mail.com,$new"
 php uploaduser.php --mode=update --updatemode=dataonly --file=${test_file} ${debuglevel}
 
 create_aux "username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
@@ -167,17 +167,17 @@ make_pristine
 # Renaming (failure - new user exists)
 ((no++))
 create_aux "username,firstname,lastname,email" \
-       	"${new},${new},${new},${new}@mail.com"
+       	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
 create_text "${no}. Renaming" "failure - new username exists"\
 	"username,firstname,lastname,email,oldusername" \
-       	"${new},${new},${new},${new}@mail.com,${new}"
+       	"$new,$new,$new,$new@mail.com,$new"
 php uploaduser.php --mode=update --file=${test_file} ${debuglevel} --allowrenames
 
 create_aux "username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
@@ -185,17 +185,17 @@ make_pristine
 # Renaming (failure - can not update)
 ((no++))
 create_aux "username,firstname,lastname,email" \
-       	"${new},${new},${new},${new}@mail.com"
+       	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
 create_text "${no}. Renaming" "failure - can not uptdate"\
 	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new},${new},${new}@mail.com,${new}"
+       	"newusername,$new,$new,$new@mail.com,$new"
 php uploaduser.php --mode=update --updatemode=nothing --file=${test_file} ${debuglevel} --allowrenames
 
 create_aux "username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
@@ -203,29 +203,30 @@ make_pristine
 # Renaming (failure - oldusername does not exist)
 ((no++))
 create_aux "username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
 create_text "${no}. Renaming" "failure - oldusername does not exist"\
 	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new},${new},${new}@mail.com,${new}"
+       	"newusername,$new,$new,$new@mail.com,$new"
 php uploaduser.php --mode=update --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
 
 
 # Renaming (failure - can not rename, part 2)
+((no++))
 create_aux "username,firstname,lastname,email" \
-       	"${new},${new},${new},${new}@mail.com"
+       	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
 create_text "${no}. Renaming" "failure - can not rename, part 2"\
 	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new},${new},${new}@mail.com,${new}"
+       	"newusername,$new,$new,$new@mail.com,$new"
 php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel}
 
 create_aux "username,firstname,lastname,email,deleted" \
-       	"${new},${new},${new},${new}@mail.com,1"
+       	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
@@ -234,7 +235,7 @@ make_pristine
 ((no++))
 create_text "${no}. Renaming" "failure - renaming admin"\
 	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new},${new},${new}@mail.com,admin"
+       	"newusername,$new,$new,$new@mail.com,admin"
 php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
 make_pristine
 
@@ -243,6 +244,42 @@ make_pristine
 ((no++))
 create_text "${no}. Renaming" "failure - renaming guest"\
 	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new},${new},${new}@mail.com,guest"
+       	"newusername,$new,$new,$new@mail.com,guest"
 php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
+make_pristine
+
+
+# Creating (error - unknown auth)
+((no++))
+create_aux "username,firstname,lastname,email,deleted" \
+       	"$new,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+create_text "${no}. Creating" "error - unknown auth"\
+	"username,firstname,lastname,email,auth" \
+       	"$new,$new,$new,$new@mail.com,as"
+php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
+
+create_aux "username,firstname,lastname,email,deleted" \
+       	"$new,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+
+# Creating (error - email duplicate)
+((no++))
+create_aux "username,firstname,lastname,email" \
+       	"$new,$new,$new,$new@mail.com"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+create_text "${no}. Creating" "error - email duplicate"\
+	"username,firstname,lastname,email" \
+       	"newusername,$new,$new,$new@mail.com"
+php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
+
+create_aux "username,firstname,lastname,email,deleted" \
+       	"$new,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine

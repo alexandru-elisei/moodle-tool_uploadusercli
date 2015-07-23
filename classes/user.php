@@ -410,7 +410,7 @@ class tool_uploaduser_user {
                 $this->error('usernotdeletedoff', new lang_string('usernotdeletedoff',
                     'error'));
                 return false;
-            } else if ($this->username === 'admin') {
+            } else if (is_siteadmin($this->existing->id)) {
                 $this->error('usernotdeletedadmin', new lang_string('usernotdeletedadmin',
                     'error'));
                 return false;
@@ -797,13 +797,15 @@ class tool_uploaduser_user {
         } else {
             $data->suspended = $data->suspended ? 1 : 0;
         }
+
         if (empty($data->auth)) {
             $data->auth = 'manual';
         }
-       
         try {
             $auth = get_auth_plugin($data->auth);
         } catch (Exception $e) {
+            $this->error('exceptiongettingauthplugin', new lang_string('exceptiongettingauthplugin',
+                        'error'));
             return false;
         }
         if (!isset($this->supportedauths[$data->auth])) {
@@ -815,6 +817,7 @@ class tool_uploaduser_user {
             if ($this->importoptions['noemailduplicates']) {
                 $this->error('useremailduplicate', new lang_string('useremailduplicate',
                         'error'));
+                return false;
             } else {
                 $this->set_status('useremailduplicate', new lang_string('useremailduplicate',
                         'error'));
