@@ -223,6 +223,6 @@ if ($readcount === false) {
 unset($content);
 
 $processor = new tool_uploaduser_processor($cir, $processoroptions);
-//$processor->execute();
-//
+$processor->execute();
+
 print "Done.\n";

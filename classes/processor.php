@@ -253,7 +253,6 @@ class tool_uploaduser_processor {
      * @return void
      */
     public function execute($tracker = null) {
-
         global $DB;
 
         tool_uploaduser_debug::show("Entered execute.", LOW, $this->debuglevel, "PROCESSOR");
@@ -286,7 +285,6 @@ class tool_uploaduser_processor {
 
             $data = $this->parse_line($line);
             $user = $this->get_user($data);
-
             if ($user->prepare()) {
                 $user->proceed();
 
@@ -341,6 +339,7 @@ class tool_uploaduser_processor {
             'forcepasswordchange'   => $this->forcepasswordchange,
             'debuglevel'            => $this->debuglevel,
         );
+
         return new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);
     }
 

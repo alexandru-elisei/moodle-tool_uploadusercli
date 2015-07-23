@@ -126,25 +126,11 @@ class tool_uploaduser_user {
     /** @var string username. */
     protected $username;
 
-    /** @var array fields allowed as user data. */
-    protected $validfields = array('id', 'username', 'email',
-        'city', 'country', 'lang', 'timezone', 'mailformat', 'firstname',
-        'maildisplay', 'maildigest', 'htmleditor', 'autosubscribe',
-        'institution', 'department', 'idnumber', 'skype', 'lastname',
-        'msn', 'aim', 'yahoo', 'icq', 'phone1', 'phone2', 'address',
-        'url', 'description', 'descriptionformat', 'password',
-        'auth',        // watch out when changing auth type or using external auth plugins!
-        'oldusername', // use when renaming users - this is the original username
-        'suspended',   // 1 means suspend user account, 0 means activate user account, nothing means keep as is for existing users
-        'deleted',     // 1 means delete user
-        'mnethostid',  // Can not be used for adding, updating or deleting of users - only for enrolments, groups, cohorts and suspending.
-    );
-
     /** @var array fields required on user creation. */
-    protected $mandatoryfields = array('username', 'firstname', 'lastname', 'email');
+    static protected $mandatoryfields = array('username', 'firstname', 'lastname', 'email');
 
     /** @var array fields which are considered as options. */
-    protected $optionfields = array('deleted' => false, 'suspended' => false,
+    static protected $optionfields = array('deleted' => false, 'suspended' => false,
         'visible' => true, 'oldusername' => null
     );
 
@@ -158,6 +144,7 @@ class tool_uploaduser_user {
      */
     public function __construct($mode, $updatemode, $rawdata, $importoptions = array()) {
         global $CFG;
+
         if ($mode !== tool_uploaduser_processor::MODE_CREATE_NEW &&
                 $mode !== tool_uploaduser_processor::MODE_CREATE_ALL &&
                 $mode !== tool_uploaduser_processor::MODE_CREATE_OR_UPDATE &&
@@ -465,9 +452,6 @@ class tool_uploaduser_user {
         // Preparing final user data.
         $finaldata = new stdClass();
         foreach ($this->rawdata as $field => $value) {
-            if (!in_array($field, self::$validfields)) {
-                continue;
-            }
             $finaldata->$field = trim($value);
         }
         $finaldata->username = $this->username;
