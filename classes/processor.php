@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/datalib.php');
+require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 
 /**
  * Processor class.
@@ -148,6 +149,23 @@ class tool_uploaduser_processor {
     /** @var bool whether the process has been started or not. */
     protected $processstarted = false;
 
+    /** @var array of standard csv fields. */
+    protected $standardfields = array('id', 'username', 'email',
+        'city', 'country', 'lang', 'timezone', 'mailformat', 'firstname',
+        'maildisplay', 'maildigest', 'htmleditor', 'autosubscribe',
+        'institution', 'department', 'idnumber', 'skype', 'lastname',
+        'msn', 'aim', 'yahoo', 'icq', 'phone1', 'phone2', 'address',
+        'url', 'description', 'descriptionformat', 'password',
+        'auth',        
+        'oldusername', // use when renaming users - this is the original username
+        'suspended',   // 1 means suspend user account, 0 means activate user account, nothing means keep as is for existing users
+        'deleted',     // 1 means delete user
+        'mnethostid',  // Can not be used for adding, updating or deleting of users - only for enrolments, groups, cohorts and suspending.
+    );
+
+    /** @var array of profile fields. */
+    protected $profilefields = array();
+
     /**
      * Constructor
      *
@@ -155,6 +173,7 @@ class tool_uploaduser_processor {
      * @param array $options options of the process
      */
     public function __construct(csv_import_reader $cir, array $options) {
+        global $DB;
 
         // Extra sanity checks
         if (!isset($options['mode']) || !in_array($options['mode'], array(self::MODE_CREATE_NEW, self::MODE_CREATE_ALL,
@@ -202,9 +221,26 @@ class tool_uploaduser_processor {
 
         tool_uploaduser_debug::show("Entered constructor.", LOW, $this->debuglevel, "PROCESSOR");
 
+        // Get all the possible user name fields.
+        $this->standardfields = array_merge($this->standardfields, get_all_user_name_fields());
+
+        // Get profilefields.
+        $profilefields = $DB->get_records('user_info_field');
+        if ($profilefields) {
+            foreach ($profilefields as $key => $field) {
+                $profilefieldname = 'profile_field_' . $field->shortname;
+                // Add new profile field.
+                $this->profilefields[] = $profilefieldname;
+            /*
+            $profilefields[$profilefieldname] = $field;
+            unset($profilefields[$key]);
+             */
+            }
+        }
+
         $this->cir = $cir;
-        $this->columns = $cir->get_columns();
-        $this->validate_csv();
+        $uselessurl = new moodle_url('/admin/tool/uploaduser/index.php');
+        $this->columns = uu_validate_user_upload_columns($this->cir, $this->standardfields, $this->profilefields, $uselessurl);
         $this->reset();
 
         tool_uploaduser_debug::show("New class created", VERBOSE, $this->debuglevel, "PROCESSOR", "__construct", $this);
@@ -318,25 +354,9 @@ class tool_uploaduser_processor {
         $data = array();
         foreach ($line as $keynum => $value) {
             $column = $this->columns[$keynum];
-            $lccolumn = trim(core_text::strtolower($column));
-            $data[$lccolumn] = $value;
+            $data[$column] = $value;
         }
         return $data;
-    }
-
-
-    /** 
-     * CSV file validation.
-     *
-     * @return void
-     */
-    protected function validate_csv() {
-        if (empty($this->columns)) {
-            throw new moodle_exception('cannotreadtmpfile', 'error');
-        }
-        if (count($this->columns) < 2) {
-            throw new moodle_exception('csvfewcolumns', 'error');
-        }
     }
 
     /**

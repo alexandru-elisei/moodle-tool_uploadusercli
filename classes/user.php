@@ -127,7 +127,7 @@ class tool_uploaduser_user {
     protected $username;
 
     /** @var array fields allowed as user data. */
-    static protected $validfields = array('id', 'username', 'email',
+    protected $validfields = array('id', 'username', 'email',
         'city', 'country', 'lang', 'timezone', 'mailformat', 'firstname',
         'maildisplay', 'maildigest', 'htmleditor', 'autosubscribe',
         'institution', 'department', 'idnumber', 'skype', 'lastname',
@@ -141,12 +141,10 @@ class tool_uploaduser_user {
     );
 
     /** @var array fields required on user creation. */
-    static protected $mandatoryfields = array('username', 'firstname', 
-        'lastname', 'email'
-    );
+    protected $mandatoryfields = array('username', 'firstname', 'lastname', 'email');
 
     /** @var array fields which are considered as options. */
-    static protected $optionfields = array('deleted' => false, 'suspended' => false,
+    protected $optionfields = array('deleted' => false, 'suspended' => false,
         'visible' => true, 'oldusername' => null
     );
 
