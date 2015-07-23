@@ -464,13 +464,14 @@ class tool_uploaduser_user {
             if (!$this->can_create() && 
                     $this->mode === tool_uploaduser_processor::MODE_UPDATE_ONLY &&
                     !isset($this->rawdata['oldusername'])) {
+
                 $this->error('usernotexistscreatenotallowed',
                     new lang_string('usernotexistscreatenotallowed', 'error'));
                 return false;
             }
         }
 
-        // Preparing final category data.
+        // Preparing final user data.
         $finaldata = new stdClass();
         foreach ($this->rawdata as $field => $value) {
             if (!in_array($field, self::$validfields)) {
@@ -481,11 +482,6 @@ class tool_uploaduser_user {
         $finaldata->username = $this->username;
         $finaldata->mnethostid = $this->mnethostid;
 
-        /*
-        print "Final data:\n";
-        var_dump($finaldata);
-         */
-       
         // Can the user be renamed?
         if (!empty($finaldata->oldusername)) {
             if ($this->existing) {
@@ -512,14 +508,6 @@ class tool_uploaduser_user {
                 $this->error('usernotrenamedoff',
                     new lang_string('usernotrenamedoff', 'error'));
                 return false;
-            } else if (isset($this->rawdata['id'])) {
-                // If category id belongs to another user
-                if ($this->existing->id !== $finaldata->id &&
-                        $DB->record_exists('user', array('id' => $finaldata->id))) {
-                    $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
-                        'error'));
-                    return false;
-                }
             }
 
             $this->do = self::DO_UPDATE;
