@@ -673,6 +673,7 @@ class tool_uploaduser_user {
             catch (Exception $e) {
                 $this->error('errorcreatinguser',
                     new lang_string('errorcreatinguser', 'tool_uploaduser'));
+                return false;
             }
             $this->id = $this->finaldata->id;
 
@@ -681,14 +682,12 @@ class tool_uploaduser_user {
 
             if ($this->needpasswordchange) {
                 set_user_preference('auth_forcepasswordchange', 1, $this->finaldata);
-
-                tool_uploaduser_debug::show("Forced password change.", LOW, $this->debuglevel, "USER");
+                $this->set_status('forcepasswordchange', new lang_string('forcepasswordchange'));
             }
             if ($this->finaldata->password === 'to be generated') {
                 set_user_preference('create_password', 1, $this->finaldata);
             }
-            $this->set_status('useradded',
-                new lang_string('newuser'));
+            $this->set_status('useradded', new lang_string('newuser'));
         }
 
     }
