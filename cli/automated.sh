@@ -228,3 +228,21 @@ create_aux "username,firstname,lastname,email,deleted" \
        	"${new},${new},${new},${new}@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
+
+
+# Renaming (failure - renaming admin)
+((no++))
+create_text "${no}. Renaming" "failure - renaming admin"\
+	"username,firstname,lastname,email,oldusername" \
+       	"newusername,${new},${new},${new}@mail.com,admin"
+php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
+make_pristine
+
+
+# Renaming (failure - renaming guest)
+((no++))
+create_text "${no}. Renaming" "failure - renaming guest"\
+	"username,firstname,lastname,email,oldusername" \
+       	"newusername,${new},${new},${new}@mail.com,guest"
+php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
+make_pristine
