@@ -231,6 +231,25 @@ php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
 
 
+# Renaming (success)
+((no++))
+create_aux "username,firstname,lastname,email" \
+       	"$new,$new,$new,$new@mail.com"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+create_text "${no}. Renaming" "success"\
+	"username,firstname,lastname,email,oldusername" \
+       	"newusername,$new,$new,$new@mail.com,$new"
+php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
+
+create_aux "username,firstname,lastname,email,deleted" \
+       	"newusername,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+
+
 # Renaming (failure - renaming admin)
 ((no++))
 create_text "${no}. Renaming" "failure - renaming admin"\
@@ -283,3 +302,52 @@ create_aux "username,firstname,lastname,email,deleted" \
        	"$new,$new,$new,$new@mail.com,1"
 php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
 make_pristine
+
+
+# Creating (warning - invalid email)
+((no++))
+create_aux "username,firstname,lastname,email,deleted" \
+       	"$new,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+create_text "${no}. Creating" "warning - invalid email"\
+	"username,firstname,lastname,email" \
+       	"$new,$new,$new,$new"
+php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
+
+create_aux "username,firstname,lastname,email,deleted" \
+       	"$new,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+
+# Creating (warning - invalid lang)
+((no++))
+create_aux "username,firstname,lastname,email,deleted" \
+       	"$new,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+create_text "${no}. Creating" "warning - invalid lang"\
+	"username,firstname,lastname,email,lang" \
+       	"$new,$new,$new,$new@mail.com,asdf"
+php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
+
+create_aux "username,firstname,lastname,email,deleted" \
+       	"$new,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+
+# Creating (error - password field missing)
+((no++))
+create_aux "username,firstname,lastname,email,deleted" \
+       	"$new,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+create_text "${no}. Creating" "error - password field missing"\
+	"username,firstname,lastname,email" \
+       	"$new,$new,$new,$new@mail.com"
+php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames --passwordmode=field

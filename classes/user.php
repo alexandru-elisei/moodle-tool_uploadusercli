@@ -853,7 +853,7 @@ class tool_uploaduser_user {
                 }
             } else {
                 $errmsg = null;
-                $resetpasswords = isset($CFG->passwordpolicy) ? $this->importoptions['forcepasswordchange'] : tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_NONE;
+                $resetpasswords = $this->importoptions['forcepasswordchange'] == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_NONE ? false : true;
                 $weak = !check_password_policy($data->password, $errmsg);
                 if ($resetpasswords == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_ALL ||
                         ($resetpasswords == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_WEAK &&

@@ -50,7 +50,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'noemailduplicates' => true,
     'standardise' => true,
     'debuglevel' => 'none',
-    'forcepasswordchange' => 'weak',
+    'forcepasswordchange' => 'none',
 ),
 array(
     'h' => 'help',
@@ -80,7 +80,7 @@ Options:
 --allowsuspends            Allow suspending or activating of accounts: true (default) false
 --noemailduplicates        Do not allow duplicate email addresses: true (default) or false
 --debuglevel               Debug level: none (default), low or verbose
---forcepasswordchange      Force users to reset their passwords: none, weak (default), all
+--forcepasswordchange      Force users to reset their passwords: none (default), weak, all
 
 Example:
 \$sudo -u www-data /usr/bin/php admin/tool/uploaduser/cli/uploaduser.php --mode=createnew \\
