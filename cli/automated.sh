@@ -21,12 +21,14 @@ create_aux() {
 	columns=${1}
 	values=${2}
 	sed -i 's/$processor->execute()/$processor->execute(new tool_uploaduser_tracker(tool_uploaduser_tracker::NO_OUTPUT))/' uploaduser.php
+	sed -i 's/print "Done.\\n";/\/\/replace_me_with_print/' uploaduser.php
 	echo "${columns}" > "$test_file"
 	echo "${values}" >> "$test_file"
 }
 
 make_pristine() {
 	sed -i 's/$processor->execute(new tool_uploaduser_tracker(tool_uploaduser_tracker::NO_OUTPUT))/$processor->execute()/' uploaduser.php
+	sed -i 's/\/\/replace_me_with_print/print "Done.\\n";/' uploaduser.php
 }
 
 #new=`date|cut -d' ' -f1-4|sed 's/ //g'|sed 's/://g'`;
@@ -256,7 +258,6 @@ create_text "${no}. Renaming" "failure - renaming admin"\
 	"username,firstname,lastname,email,oldusername" \
        	"newusername,$new,$new,$new@mail.com,admin"
 php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
-make_pristine
 
 
 # Renaming (failure - renaming guest)
@@ -265,7 +266,6 @@ create_text "${no}. Renaming" "failure - renaming guest"\
 	"username,firstname,lastname,email,oldusername" \
        	"newusername,$new,$new,$new@mail.com,guest"
 php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames
-make_pristine
 
 
 # Creating (error - unknown auth)
