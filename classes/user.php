@@ -414,6 +414,10 @@ class tool_uploaduser_user {
                 $this->error('usernotdeletedadmin', new lang_string('usernotdeletedadmin',
                     'error'));
                 return false;
+            } else if ($this->username === 'guest') {
+                $this->error('guestnoeditprofileother', new lang_string('guestnoeditprofileother',
+                    'error'));
+                return false;
             }
             $this->do = self::DO_DELETE;
 

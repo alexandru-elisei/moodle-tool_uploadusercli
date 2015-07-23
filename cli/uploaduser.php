@@ -223,4 +223,4 @@ if ($readcount === false) {
 unset($content);
 
 $processor = new tool_uploaduser_processor($cir, $processoroptions);
-$processor->execute(new tool_uploaduser_tracker(tool_uploaduser_tracker::NO_OUTPUT));
+$processor->execute();

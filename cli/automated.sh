@@ -31,8 +31,10 @@ make_pristine() {
 
 #new=`date|cut -d' ' -f1-4|sed 's/ //g'|sed 's/://g'`;
 new=`date +%s`
+make_pristine
 
 
+# Creation (success)
 no="1"
 create_text "${no}. Creating" "success"\
 	"username,firstname,lastname,email" \
@@ -40,6 +42,7 @@ create_text "${no}. Creating" "success"\
 php uploaduser.php --mode=createnew --file=test.csv ${debuglevel}
 
 
+# Deletion (success)
 ((no++))
 create_text "${no}. Deleting" "success" \
 	"username,firstname,lastname,email,deleted" \
@@ -47,6 +50,7 @@ create_text "${no}. Deleting" "success" \
 php uploaduser.php --mode=createnew --file=test.csv ${debuglevel} --allowdeletes
 
 
+# Deletion (failure - deletes not allowed)
 ((no++))
 create_aux "username,firstname,lastname,email" \
        	"${new},${new},${new},${new}@mail.com"
@@ -58,10 +62,44 @@ create_text "${no}. Deleting" "failure, deletes not allowed"\
        	"${new},${new},${new},${new}@mail.com,1"
 php uploaduser.php --mode=createnew --file=test.csv ${debuglevel}
 
+
+# Deletion (failure - user does not exist)
+((no++))
 create_aux "username,firstname,lastname,email,deleted" \
        	"${new},${new},${new},${new}@mail.com,1"
 php uploaduser.php --mode=createnew --file=test.csv --allowdeletes
 make_pristine
 
+create_text "${no}. Deleting" "failure - user does not exist"\
+	"username,firstname,lastname,email,deleted" \
+       	"${new},${new},${new},${new}@mail.com,1"
+php uploaduser.php --mode=createnew --file=test.csv ${debuglevel} --allowdeletes
 
-# TEST 4
+
+# Deletion (failure - user admin)
+((no++))
+create_text "${no}. Deleting" "failure - user admin"\
+	"username,firstname,lastname,email,deleted" \
+       	"admin,${new},${new},${new}@mail.com,1"
+php uploaduser.php --mode=createnew --file=test.csv ${debuglevel} --allowdeletes
+
+
+# Deletion (failure - user guest)
+((no++))
+create_text "${no}. Deleting" "failure - user guest"\
+	"username,firstname,lastname,email,deleted" \
+       	"guest,${new},${new},${new}@mail.com,1"
+php uploaduser.php --mode=createnew --file=test.csv ${debuglevel} --allowdeletes
+
+
+# Creation (failure - mnethostid invalid)
+((no++))
+create_aux "username,mnethostid" \
+       	"${new},a"
+php uploaduser.php --mode=createnew --file=test.csv
+make_pristine
+
+create_text "${no}. Creation" "failure - mnethostid invalid"\
+	"username,mnethostid" \
+       	"${new},a"
+php uploaduser.php --mode=createnew --file=test.csv ${debuglevel}
