@@ -687,6 +687,20 @@ class tool_uploaduser_user {
             if ($this->finaldata->password === 'to be generated') {
                 set_user_preference('create_password', 1, $this->finaldata);
             }
+
+            /*
+            print "\nfinal data:\n";
+            var_dump($this->finaldata);
+             */
+            
+            // Trigger event.
+            \core\event\user_created::create_from_userid($this->finaldata->id)->trigger();
+            
+            /*
+            print "\nfinal data:\n";
+            var_dump($this->finaldata);
+             */
+
             $this->set_status('useradded', new lang_string('newuser'));
         }
 

@@ -332,7 +332,10 @@ class tool_uploaduser_processor {
      */
     protected function validate_csv() {
         if (empty($this->columns)) {
-            throw new moodle_exception('cannot_read_tmp_file', 'error');
+            throw new moodle_exception('cannotreadtmpfile', 'error');
+        }
+        if (count($this->columns) < 2) {
+            throw new moodle_exception('csvfewcolumns', 'error');
         }
     }
 
