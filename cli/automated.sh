@@ -351,3 +351,16 @@ create_text "${no}. Creating" "error - password field missing"\
 	"username,firstname,lastname,email" \
        	"$new,$new,$new,$new@mail.com"
 php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames --passwordmode=field
+
+
+# Creating (success - password auto-generated)
+((no++))
+create_aux "username,firstname,lastname,email,deleted" \
+       	"$new,$new,$new,$new@mail.com,1"
+php uploaduser.php --mode=createnew --file=${test_file} --allowdeletes
+make_pristine
+
+create_text "${no}. Creating" "success - password auto-generated"\
+	"username,firstname,lastname,email,password" \
+       	"$new,$new,$new,$new@mail.com,a"
+php uploaduser.php --mode=createorupdate --updatemode=dataonly --file=${test_file} ${debuglevel} --allowrenames --passwordmode=field --forcepasswordchange=weak

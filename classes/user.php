@@ -855,9 +855,8 @@ class tool_uploaduser_user {
                 $errmsg = null;
                 $resetpasswords = $this->importoptions['forcepasswordchange'] == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_NONE ? false : true;
                 $weak = !check_password_policy($data->password, $errmsg);
-                if ($resetpasswords == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_ALL ||
-                        ($resetpasswords == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_WEAK &&
-                        $weak)) {
+                if ($this->importoptions['forcepasswordchange'] == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_ALL ||
+                        ($resetpasswords && $weak)) {
                     $this->needpasswordchange = true;
                 }
                 // Use a low cost factor when generating hash so it's not too
