@@ -444,13 +444,6 @@ class tool_uploaduser_user {
             }
         }
 
-        // Cannot edit guest user.
-        if ($this->username === 'guest') {
-            $this->error('guestnoeditprofileother', new lang_string('guestnoeditprofileother',
-                'error'));
-            return false;
-        }
-
         // Can we create/update the user under those conditions?
         if ($this->existing) {
             if (!$this->can_update()) {
