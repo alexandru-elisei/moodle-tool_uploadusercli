@@ -24,33 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Verified, actually needed.
-require_once($CFG->dirroot . '/user/lib.php');
-
-// Verified, actually needed.
-require_once($CFG->libdir . '/jabber/XMPP/XMLStream.php');
-
-// Verified, actually needed.
-require_once($CFG->dirroot . '/group/lib.php');
-
-// Verified, actually needed.
-require_once($CFG->dirroot . '/cohort/lib.php');
-
-// Verified, actually needed.
-require_once($CFG->dirroot . '/user/profile/lib.php');
-
-// Verified, actually needed.
-require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
-
-// Verified, actually needed.
-require_once($CFG->libdir . '/moodlelib.php');
-
-// Verified, actually needed.
-require_once($CFG->libdir . '/weblib.php');
-
-// Verified, actually needed.
-require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
-
 /**
  * User class.
  *

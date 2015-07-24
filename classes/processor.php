@@ -23,9 +23,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->libdir . '/csvlib.class.php');
-require_once($CFG->libdir . '/datalib.php');
-require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 
 /**
  * Processor class.

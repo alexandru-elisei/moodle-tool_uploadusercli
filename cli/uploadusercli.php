@@ -25,7 +25,6 @@
 define('CLI_SCRIPT', true);
 
 require(__DIR__ . '/../../../../config.php');
-require_once('../classes/debug.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
@@ -33,6 +32,7 @@ require_once($CFG->dirroot . '/user/profile/lib.php');
 require_once($CFG->dirroot . '/user/lib.php');
 require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/cohort/lib.php');
+require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(

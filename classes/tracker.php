@@ -23,12 +23,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot . '/user/profile/lib.php');
-require_once($CFG->dirroot . '/user/lib.php');
-require_once($CFG->dirroot . '/group/lib.php');
-require_once($CFG->dirroot . '/cohort/lib.php');
-require_once($CFG->libdir . '/clilib.php');
-require_once($CFG->libdir . '/adminlib.php');
 
 /**
  * Class output tracker.
