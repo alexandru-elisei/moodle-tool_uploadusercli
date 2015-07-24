@@ -17,7 +17,7 @@
 /**
  * File containing processor class.
  *
- * @package    tool_uploaduser
+ * @package    tool_uploadusercli
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,7 +30,7 @@ require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 /**
  * Processor class.
  *
- * @package    tool_uploaduser
+ * @package    tool_uploadusercli
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -310,12 +310,6 @@ class tool_uploaduser_processor {
 
                 $errors++;
                 $tracker->output($this->linenum, false, $user->get_errors(), $data);
-
-                /*
-                print "PROCESSOR::proceed errors:\n";
-                $errors = $user->get_errors();
-                var_dump($errors);
-                 */
             }
         }
         $tracker->results($total, $created, $updated, $deleted, $errors);

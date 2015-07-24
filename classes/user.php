@@ -17,7 +17,7 @@
 /**
  * File containing the user class.
  *
- * @package    tool_uploaduser
+ * @package    tool_uploadusercli
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -54,7 +54,7 @@ require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 /**
  * User class.
  *
- * @package    tool_uploaduser
+ * @package    tool_uploadusercli
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

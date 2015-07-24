@@ -17,7 +17,7 @@
 /**
  * File containing the debug class.
  *
- * @package    tool_uploaduser
+ * @package    tool_uploadusercli
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -31,7 +31,7 @@ define('VERBOSE', 2);
 /**
  * Debug class.
  *
- * @package    tool_uploaduser
+ * @package    tool_uploadusercli
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -52,6 +52,7 @@ class tool_uploaduser_debug {
 
     /**
      * Print debug messages.
+     *
      * @param string $message the message to display. 
      * @param int $requiredlevel at what debug verbosity level to display the message.
      * @param int $currentlevel override current debug level.

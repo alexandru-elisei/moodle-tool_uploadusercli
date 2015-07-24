@@ -17,7 +17,7 @@
 /**
  * Output tracker.
  *
- * @package    tool_uploaduser
+ * @package    tool_uploadusercli
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -33,7 +33,7 @@ require_once($CFG->libdir . '/adminlib.php');
 /**
  * Class output tracker.
  *
- * @package    tool_uploaduser
+ * @package    tool_uploadusercli
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -93,8 +93,6 @@ class tool_uploaduser_tracker {
     public function output($line, $outcome, $status, $data) {
         global $OUTPUT;
 
-        //print "TRACKER::entering\n";
-
         if ($this->outputmode === self::NO_OUTPUT) {
             return;
         }
@@ -150,15 +148,6 @@ class tool_uploaduser_tracker {
         if ($this->outputmode == self::NO_OUTPUT) {
             return;
         }
-        /*
-        $message = array(
-            get_string('coursecategoriestotal', 'tool_uploadcoursecategory',  $total),
-            get_string('coursecategoriescreated', 'tool_uploadcoursecategory',  $created),
-            get_string('coursecategoriesupdated', 'tool_uploadcoursecategory', $updated),
-            get_string('coursecategoriesdeleted', 'tool_uploadcoursecategory', $deleted),
-            get_string('coursecategorieserrors', 'tool_uploadcoursecategory', $errors)
-        );
-         */
         $message = array(
             "",
             "Created: $created",

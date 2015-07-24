@@ -17,7 +17,7 @@
 /**
  * CLI user registration script from a comma separated file.
  *
- * @package    tool_uploaduser
+ * @package    tool_uploadusercli
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
