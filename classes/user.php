@@ -186,6 +186,8 @@ class tool_uploadusercli_user {
      * @return void
      */
     protected function error($code, lang_string $message) {
+        print "Adding error\n";
+
         $this->errors[$code] = $message;
     }
     
@@ -338,7 +340,7 @@ class tool_uploadusercli_user {
      * @return bool false is any error occured.
      */
     public function prepare() {
-        global $DB;
+        global $DB, $CFG;
 
         tool_uploadusercli_debug::show("Entered prepare.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
@@ -369,8 +371,6 @@ class tool_uploadusercli_user {
 
         $this->existing = $this->exists();
 
-        //var_dump($this);
-
         // Can we delete the user? We only need username for deletion.
         if (!empty($this->options['deleted'])) {
             if (empty($this->existing)) {
@@ -382,6 +382,7 @@ class tool_uploadusercli_user {
                     'error'));
                 return false;
             } else if (is_siteadmin($this->existing->id)) {
+                print "is site admin!\n";
                 $this->error('usernotdeletedadmin', new lang_string('usernotdeletedadmin',
                     'error'));
                 return false;
@@ -404,7 +405,7 @@ class tool_uploadusercli_user {
             return false;
         }
 
-        tool_uploadusercli_debug::show("Valided id field.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Validated id field.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
  
         // Checking mandatory fields.
         foreach (self::$mandatoryfields as $key => $field) {
@@ -457,6 +458,14 @@ class tool_uploadusercli_user {
             }
             $this->existing = $this->exists($oldusername);
 
+            /*
+            print "Old user to be updated:\n";
+            var_dump($this->existing);
+
+            print "Siteadmins:\n";
+            var_dump($CFG->siteadmins);
+            */
+
             if (!$this->can_update()) {
                 $this->error('usernotupdatederror', 
                     new lang_string('usernotupdatederror', 'error'));
@@ -477,13 +486,11 @@ class tool_uploadusercli_user {
 
             $this->set_status('userrenamed', new lang_string('userrenamed', 
                 'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata->name)));
-
-            //return true;
         }
 
         // Do not update admin and guest account through the csv.
         if ($this->existing) {
-            if (is_siteadmin($this->existing->id)) {
+            if (is_siteadmin($this->existing)) {
                 $this->error('usernotupdatedadmin',
                     new lang_string('usernotupdatedadmin',  'tool_uploaduser'));
                 return false;
@@ -575,11 +582,17 @@ class tool_uploadusercli_user {
 
             $missingonly = ($updatemode === tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
+            if (!$finaldata) {
+                $this->error('usernotupdatederror', new lang_string('usernotupdatederror', 'error'));
+                return false;
+            } else {
 
-            tool_uploadusercli_debug::show("Final update data.", UUC_DEBUG_VERBOSE, $this->debuglevel,
-                "USER", "prepare", $finaldata);
 
-            $this->do = self::DO_UPDATE;
+                tool_uploadusercli_debug::show("Final update data.", UUC_DEBUG_VERBOSE, $this->debuglevel,
+                                                "USER", "prepare", $finaldata);
+
+                $this->do = self::DO_UPDATE;
+            }
         } 
         else {
             $finaldata = $this->get_final_create_data($finaldata);
@@ -672,29 +685,30 @@ class tool_uploadusercli_user {
      * @param bool $missingonly ignore fields which are already set.
      * @return array
      */
-    protected function get_final_update_data($newdata, $existingdata, $usedefaults = false, $missingonly = false) {
+    protected function get_final_update_data($data, $existingdata, $usedefaults = false, $missingonly = false) {
         global $DB;
-
         $dologout = false;
 
         $existingdata->timemodified = time();
         profile_load_data($existingdata);
 
         // Changing auth information.
-        if (!empty($existingdata->auth) && $newdata->auth) {
-            $existingdata->auth = $newdata->auth;
-            if ($newdata->auth === 'nologin') {
+        if (!empty($existingdata->auth) && $data->auth) {
+            $existingdata->auth = $data->auth;
+            if ($data->auth === 'nologin') {
                 $dologout = true;
             }
         }
 
-        //$stdfields = 
-        foreach ($this->validfields as $field) {
+        $allfields = array_merge($this->standardfields, $this->profilefields);
+        foreach ($allcolumns as $field) {
+            // These fields are being processed somewhere else.
             if ($field === 'username' || $field === 'password' ||
                 $field === 'auth' || $field === 'suspended')
                 continue;
 
-            if (!$newdata->$field || !$existingdata->$field) {
+            // Field not present in the CSV file.
+            if (!$data->$field || !$existingdata->$field) {
                 continue;
             }
             if ($missingonly) {
@@ -711,10 +725,10 @@ class tool_uploadusercli_user {
                 }
             }
 
-            if ($existingdata->$field !== $newdata->$field) {
+            if ($existingdata->$field !== $data->$field) {
                 // Checking email.
                 if ($field === 'email') {
-                    if ($DB->record_exists('user', array('email' => $newdata->email))) {
+                    if ($DB->record_exists('user', array('email' => $data->email))) {
                         if ($this->importoptions['noemailduplicates']) {
                             $this->error('useremailduplicate', new lang_string('useremailduplicate',
                                 'error'));
@@ -723,22 +737,28 @@ class tool_uploadusercli_user {
                                 'error'));
                         }
                     }
-                    if (!validate_email($newdata->email)) {
+                    if (!validate_email($data->email)) {
                         $this->set_status('invalidemail', new lang_string('invalidemail', 'warning'));
                     }
                 } else if ($field === 'lang') {
-                    if (empty($newdata->lang)) {
+                    if (empty($data->lang)) {
                         // Don't change language if not already set.
                         continue;
-                    } else if (clean_param($newdata->lang, PARAM_LANG) === '') {
+                    } else if (clean_param($data->lang, PARAM_LANG) === '') {
                         $this->set_status('cannotfindlang', new lang_string('cannotfindlang', 'error'));
                         continue;
                     }
-                } else {
-                    $existingdata->$field = $newdata->$field;
-                    $doupdate = true;
                 }
+                $existingdata->$field = $data->$field;
+                $doupdate = true;
             }
+        }
+        try {
+            $auth = get_auth_plugin($existingdata->auth);
+        } catch (Exception $e) {
+            $this->set_status('userautherror', new lang_string('userautherror', 'error'));
+            $this->error('usernotupdated', new lang_string('usernotupdated', 'error'));
+            return false;
         }
 
         return $existingdata;
