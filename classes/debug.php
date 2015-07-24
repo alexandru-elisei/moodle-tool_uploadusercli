@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-define('NONE', 0);
-define('LOW', 1);
-define('VERBOSE', 2);
+define('UUC_DEBUG_NONE', 0);
+define('UUC_DEBUG_LOW', 1);
+define('UUC_DEBUG_VERBOSE', 2);
 
 /**
  * Debug class.
@@ -46,7 +46,7 @@ class tool_uploadusercli_debug {
      *
      * @param debuglevel the debug verbosity level
      */
-    public function __construct($debuglevel = NONE) {
+    public function __construct($debuglevel = UUC_DEBUG_NONE) {
         $this->debuglevel = $debuglevel;
     }
 

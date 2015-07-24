@@ -176,9 +176,9 @@ $processoroptions['forcepasswordchange'] = $forcepasswordchanges[$options['force
 
 // Check debug level.
 $debuglevels = array(
-    'none' => NONE,
-    'low' => LOW,
-    'verbose' => VERBOSE,
+    'none' => UUC_DEBUG_NONE,
+    'low' => UUC_DEBUG_LOW,
+    'verbose' => UUC_DEBUG_VERBOSE,
 );
 
 if (!isset($options['debuglevel']) || !isset($debuglevels[$options['debuglevel']])) {

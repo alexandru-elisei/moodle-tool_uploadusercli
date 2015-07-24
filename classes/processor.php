@@ -214,12 +214,12 @@ class tool_uploadusercli_processor {
         if (isset($options['forcepasswordchange'])) {
             $this->forcepasswordchange = $options['forcepasswordchange'];
         }
-        $this->debuglevel = NONE;
+        $this->debuglevel = UUC_DEBUG_NONE;
         if (isset($options['debuglevel'])) {
             $this->debuglevel = $options['debuglevel'];
         }
 
-        tool_uploadusercli_debug::show("Entered constructor.", LOW, $this->debuglevel, "PROCESSOR");
+        tool_uploadusercli_debug::show("Entered constructor.", UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
 
         // Get all the possible user name fields.
         $this->standardfields = array_merge($this->standardfields, get_all_user_name_fields());
@@ -243,7 +243,7 @@ class tool_uploadusercli_processor {
         $this->columns = uu_validate_user_upload_columns($this->cir, $this->standardfields, $this->profilefields, $uselessurl);
         $this->reset();
 
-        tool_uploadusercli_debug::show("New class created", VERBOSE, $this->debuglevel, "PROCESSOR", "__construct", $this);
+        tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE, $this->debuglevel, "PROCESSOR", "__construct", $this);
     }
 
     /**
@@ -255,7 +255,7 @@ class tool_uploadusercli_processor {
     public function execute($tracker = null) {
         global $DB;
 
-        tool_uploadusercli_debug::show("Entered execute.", LOW, $this->debuglevel, "PROCESSOR");
+        tool_uploadusercli_debug::show("Entered execute.", UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
 
         if ($this->processstarted) {
             throw new moodle_exception('process_already_started', 'error');
@@ -288,7 +288,7 @@ class tool_uploadusercli_processor {
             if ($user->prepare()) {
                 $user->proceed();
 
-                tool_uploadusercli_debug::show("User prepared.", LOW, $this->debuglevel, "PROCESSOR");
+                tool_uploadusercli_debug::show("User prepared.", UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
 
                 $status = $user->get_statuses();
                 if (array_key_exists('useradded', $status)) {
@@ -299,14 +299,14 @@ class tool_uploadusercli_processor {
                     $deleted++;
                 }
                 
-                tool_uploadusercli_debug::show("User prepared.", VERBOSE, $this->debuglevel, 
+                tool_uploadusercli_debug::show("User prepared.", UUC_DEBUG_VERBOSE, $this->debuglevel, 
                     "PROCESSOR", "execute", $status);
 
                 $data = array_merge($data, $user->get_finaldata(), array('id' => $user->get_id()));
                 $tracker->output($this->linenum, true, $status, $data);
             } else {
 
-                tool_uploadusercli_debug::show("User prepare failed.", LOW, $this->debuglevel, "PROCESSOR");
+                tool_uploadusercli_debug::show("User prepare failed.", UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
 
                 $errors++;
                 $tracker->output($this->linenum, false, $user->get_errors(), $data);
