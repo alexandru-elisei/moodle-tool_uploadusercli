@@ -1,6 +1,6 @@
 #!/bin/bash
 
-test_file='automated.csv'
+test_file='tests.csv'
 debuglevel="${1}"
 
 create_text() {
