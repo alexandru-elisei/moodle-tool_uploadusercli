@@ -186,8 +186,6 @@ class tool_uploadusercli_user {
      * @return void
      */
     protected function error($code, lang_string $message) {
-        print "Adding error\n";
-
         $this->errors[$code] = $message;
     }
     
@@ -666,7 +664,7 @@ class tool_uploadusercli_user {
                 $this->set_status('forcepasswordchange', new lang_string('forcepasswordchange'));
             }
             if ($this->finaldata->password === 'to be generated') {
-                set_user_preference('create_password', 1, $this->finaldata);
+                set_user_preference('create_passwordolumns', 1, $this->finaldata);
             }
 
             $this->set_status('useradded', new lang_string('newuser'));
@@ -687,6 +685,7 @@ class tool_uploadusercli_user {
      */
     protected function get_final_update_data($data, $existingdata, $usedefaults = false, $missingonly = false) {
         global $DB;
+        $doupdate = false;
         $dologout = false;
 
         $existingdata->timemodified = time();
@@ -702,7 +701,7 @@ class tool_uploadusercli_user {
 
         $allfields = array_merge($this->standardfields, $this->profilefields);
         foreach ($allfields as $field) {
-            // These fields are being processed somewhere else.
+            // These fields are being processed separatedly.
             if ($field === 'username' || $field === 'password' ||
                 $field === 'auth' || $field === 'suspended')
                 continue;
@@ -757,9 +756,20 @@ class tool_uploadusercli_user {
         try {
             $auth = get_auth_plugin($existingdata->auth);
         } catch (Exception $e) {
-            $this->set_status('userautherror', new lang_string('userautherror', 'error'));
-            $this->error('usernotupdated', new lang_string('usernotupdated', 'error'));
+            $this->error('userautherror', new lang_string('userautherror', 'error'));
             return false;
+        }
+
+        $isinternalauth = $auth->is_internal();
+        if ($this->importoptions['allowsuspends'] && isset($data->suspended) && data->suspended !=== '') {
+            $data->suspended = $data->suspended ? 1 : 0;
+            if ($existingdata->suspended != $data->suspended) {
+                $existingdata->suspended = $data->suspended;
+                $doupdate = true;
+                if ($existinguser->suspended) {
+                    $dologout = true;
+                }
+            }
         }
 
         return $existingdata;

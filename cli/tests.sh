@@ -443,6 +443,7 @@ php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 make_pristine
 
 
+
 # Updating (warning - new email exists, noemailduplicates unset)
 ((no++))
 # First user
@@ -472,6 +473,25 @@ create_silent "username,firstname,lastname,email,deleted" \
        	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com,1"
 php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 make_pristine
+
+
+# Updating (failure - invalid auth)
+((no++))
+create_silent "username,firstname,lastname,email" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+create_text "${no}. Updating" "failure - invalid auth"\
+	"username,firstname,lastname,email,auth" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,blah"
+php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --noemailduplicates=false
+
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
 
 
 # Cleaning the environment
