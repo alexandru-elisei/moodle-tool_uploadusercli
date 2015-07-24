@@ -33,6 +33,7 @@ require_once($CFG->dirroot . '/user/lib.php');
 require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/cohort/lib.php');
 require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
+require_once('../classes/debug.php');
 
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(
