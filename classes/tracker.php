@@ -37,7 +37,7 @@ require_once($CFG->libdir . '/adminlib.php');
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class tool_uploaduser_tracker {
+class tool_uploadusercli_tracker {
 
     /**
      * Constant to output nothing.

@@ -58,7 +58,7 @@ require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class tool_uploaduser_user {
+class tool_uploadusercli_user {
 
     /** Outcome of the process: creating the user */
     const DO_CREATE = 1;
@@ -96,10 +96,10 @@ class tool_uploaduser_user {
     /** @var array containing options passed from the processor. */
     protected $importoptions = array();
 
-    /** @var int import mode. Matches tool_uploaduser_processor::MODE_* */
+    /** @var int import mode. Matches tool_uploadusercli_processor::MODE_* */
     protected $mode;
 
-    /** @var int update mode. Matches tool_uploaduser_processor::UPDATE_* */
+    /** @var int update mode. Matches tool_uploadusercli_processor::UPDATE_* */
     protected $updatemode;
 
     /** @var array user import options. */
@@ -137,23 +137,23 @@ class tool_uploaduser_user {
     /**
      * Constructor
      *
-     * @param int $mode import mode, constant matching tool_uploaduser_processor::MODE_*
-     * @param int $updatemode update mode, constant matching tool_uploaduser_processor::UPDATE_*
+     * @param int $mode import mode, constant matching tool_uploadusercli_processor::MODE_*
+     * @param int $updatemode update mode, constant matching tool_uploadusercli_processor::UPDATE_*
      * @param array $rawdata raw user data.
      * @param array $importoptions import options.
      */
     public function __construct($mode, $updatemode, $rawdata, $importoptions = array()) {
         global $CFG;
 
-        if ($mode !== tool_uploaduser_processor::MODE_CREATE_NEW &&
-                $mode !== tool_uploaduser_processor::MODE_CREATE_ALL &&
-                $mode !== tool_uploaduser_processor::MODE_CREATE_OR_UPDATE &&
-                $mode !== tool_uploaduser_processor::MODE_UPDATE_ONLY) {
+        if ($mode !== tool_uploadusercli_processor::MODE_CREATE_NEW &&
+                $mode !== tool_uploadusercli_processor::MODE_CREATE_ALL &&
+                $mode !== tool_uploadusercli_processor::MODE_CREATE_OR_UPDATE &&
+                $mode !== tool_uploadusercli_processor::MODE_UPDATE_ONLY) {
             throw new coding_exception('Incorrect mode.');
-        } else if ($updatemode !== tool_uploaduser_processor::UPDATE_NOTHING &&
-                $updatemode !== tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_ONLY &&
-                $updatemode !== tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS &&
-                $updatemode !== tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS) {
+        } else if ($updatemode !== tool_uploadusercli_processor::UPDATE_NOTHING &&
+                $updatemode !== tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_ONLY &&
+                $updatemode !== tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS &&
+                $updatemode !== tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS) {
             throw new coding_exception('Incorrect update mode.');
         }
 
@@ -188,7 +188,7 @@ class tool_uploaduser_user {
         // Supported authentification plugins.
         $this->supportedauths = uu_supported_auths();
 
-        tool_uploaduser_debug::show("New class created", VERBOSE, $this->debuglevel,
+        tool_uploadusercli_debug::show("New class created", VERBOSE, $this->debuglevel,
             "USER", "__construct", $this);
     }
 
@@ -261,9 +261,9 @@ class tool_uploaduser_user {
     public function can_update() {
         return in_array($this->mode,
                 array(
-                    tool_uploaduser_processor::MODE_UPDATE_ONLY,
-                    tool_uploaduser_processor::MODE_CREATE_OR_UPDATE)
-                ) && $this->updatemode !== tool_uploaduser_processor::UPDATE_NOTHING;
+                    tool_uploadusercli_processor::MODE_UPDATE_ONLY,
+                    tool_uploadusercli_processor::MODE_CREATE_OR_UPDATE)
+                ) && $this->updatemode !== tool_uploadusercli_processor::UPDATE_NOTHING;
     }
 
     /**
@@ -272,9 +272,9 @@ class tool_uploaduser_user {
      * @return bool
      */
     protected function can_create() {
-        return in_array($this->mode, array(tool_uploaduser_processor::MODE_CREATE_ALL,
-            tool_uploaduser_processor::MODE_CREATE_NEW,
-            tool_uploaduser_processor::MODE_CREATE_OR_UPDATE));
+        return in_array($this->mode, array(tool_uploadusercli_processor::MODE_CREATE_ALL,
+            tool_uploadusercli_processor::MODE_CREATE_NEW,
+            tool_uploadusercli_processor::MODE_CREATE_OR_UPDATE));
     }
 
     /**
@@ -354,7 +354,7 @@ class tool_uploaduser_user {
     public function prepare() {
         global $DB;
 
-        tool_uploaduser_debug::show("Entered prepare.", LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Entered prepare.", LOW, $this->debuglevel, "USER");
 
         $this->prepared = true;
         
@@ -370,7 +370,7 @@ class tool_uploaduser_user {
             return false;
         }
 
-        tool_uploaduser_debug::show("Validated username.", LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Validated username.", LOW, $this->debuglevel, "USER");
 
         // Validate moodle net host id.
         if (!is_numeric($this->mnethostid)) {
@@ -379,7 +379,7 @@ class tool_uploaduser_user {
             return false;
         }
 
-        tool_uploaduser_debug::show("Validated mnethostid.", LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Validated mnethostid.", LOW, $this->debuglevel, "USER");
 
         $this->existing = $this->exists();
 
@@ -406,7 +406,7 @@ class tool_uploaduser_user {
             }
             $this->do = self::DO_DELETE;
 
-            tool_uploaduser_debug::show("User deletion queued.", LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("User deletion queued.", LOW, $this->debuglevel, "USER");
 
             return true;
         }
@@ -418,7 +418,7 @@ class tool_uploaduser_user {
             return false;
         }
 
-        tool_uploaduser_debug::show("Valided id field.", LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Valided id field.", LOW, $this->debuglevel, "USER");
  
         // Checking mandatory fields.
         foreach (self::$mandatoryfields as $key => $field) {
@@ -440,7 +440,7 @@ class tool_uploaduser_user {
             // If I cannot create the course, or I'm in update-only mode and I'm 
             // not renaming
             if (!$this->can_create() && 
-                    $this->mode === tool_uploaduser_processor::MODE_UPDATE_ONLY &&
+                    $this->mode === tool_uploadusercli_processor::MODE_UPDATE_ONLY &&
                     !isset($this->rawdata['oldusername'])) {
 
                 $this->error('usernotexistscreatenotallowed',
@@ -487,7 +487,7 @@ class tool_uploaduser_user {
 
             $this->do = self::DO_UPDATE;
 
-            tool_uploaduser_debug::show("Renaming queued.", LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Renaming queued.", LOW, $this->debuglevel, "USER");
 
             $this->set_status('userrenamed', new lang_string('userrenamed', 
                 'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata->name)));
@@ -509,7 +509,7 @@ class tool_uploaduser_user {
         }
 
         // If exists, but we only want to create users, increment the username.
-        if ($this->existing && $this->mode === tool_uploaduser_processor::MODE_CREATE_ALL) {
+        if ($this->existing && $this->mode === tool_uploadusercli_processor::MODE_CREATE_ALL) {
             $original = $this->username;
             $this->username = uu_increment_username($this->username);
             // We are creating a new user.
@@ -527,7 +527,7 @@ class tool_uploaduser_user {
                  */
             }
 
-            tool_uploaduser_debug::show("Username incremented.", LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Username incremented.", LOW, $this->debuglevel, "USER");
         }  
 
         /*
@@ -540,18 +540,18 @@ class tool_uploaduser_user {
         }
          */
 
-        tool_uploaduser_debug::show("Last sanity checks...", LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Last sanity checks...", LOW, $this->debuglevel, "USER");
 
         // Ultimate check mode vs. existence.
         switch ($this->mode) {
-            case tool_uploaduser_processor::MODE_CREATE_NEW:
+            case tool_uploadusercli_processor::MODE_CREATE_NEW:
                 if ($this->existing) {
                     $this->error('usernotaddedregistered',
                         new lang_string('usernotaddedregistered', 'error'));
                     return false;
                 }
                 break;
-            case tool_uploaduser_processor::MODE_CREATE_ALL:
+            case tool_uploadusercli_processor::MODE_CREATE_ALL:
                 // This should not happen, we set existing to null when we increment. 
                 if ($this->existing) {
                     $this->error('usernotaddederror',
@@ -559,16 +559,16 @@ class tool_uploaduser_user {
                     return false;
                 }
                 break;
-            case tool_uploaduser_processor::MODE_UPDATE_ONLY:
+            case tool_uploadusercli_processor::MODE_UPDATE_ONLY:
                 if (!$this->existing) {
                     $this->error('usernotexistcreatenotallowed',
                         new lang_string('usernotexistcreatenotallowed', 'tool_uploaduser'));
                     return false;
                 }
                 break;
-            case tool_uploaduser_processor::MODE_CREATE_OR_UPDATE:
+            case tool_uploadusercli_processor::MODE_CREATE_OR_UPDATE:
                 if ($this->existing) {
-                    if ($this->updatemode === tool_uploaduser_processor::UPDATE_NOTHING) {
+                    if ($this->updatemode === tool_uploadusercli_processor::UPDATE_NOTHING) {
                         $this->error('updatemodedoessettonothing',
                             new lang_string('updatemodedoessettonothing', 'tool_uploaduser'));
                         return false;
@@ -585,12 +585,12 @@ class tool_uploaduser_user {
         // Get final data.
         if ($this->existing) {
 
-            tool_uploaduser_debug::show("Getting final update data.", LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Getting final update data.", LOW, $this->debuglevel, "USER");
 
-            $missingonly = ($updatemode === tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
+            $missingonly = ($updatemode === tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
 
-            tool_uploaduser_debug::show("Final update data.", VERBOSE, $this->debuglevel,
+            tool_uploadusercli_debug::show("Final update data.", VERBOSE, $this->debuglevel,
                 "USER", "prepare", $finaldata);
 
             $this->do = self::DO_UPDATE;
@@ -598,13 +598,13 @@ class tool_uploaduser_user {
         else {
             $finaldata = $this->get_final_create_data($finaldata);
             if (!$finaldata) {
-                //tool_uploaduser_debug::show("Entering get_final_create_data.", LOW, $this->debuglevel, "USER");
+                //tool_uploadusercli_debug::show("Entering get_final_create_data.", LOW, $this->debuglevel, "USER");
                 $this->error('usernotaddederror', new lang_string('usernotaddederror',
                     'error'));
                 return false;
             } else {
-                tool_uploaduser_debug::show("Creation queued.", LOW, $this->debuglevel, "USER");
-                tool_uploaduser_debug::show("Finaldata:", VERBOSE, $this->debuglevel, 
+                tool_uploadusercli_debug::show("Creation queued.", LOW, $this->debuglevel, "USER");
+                tool_uploadusercli_debug::show("Finaldata:", VERBOSE, $this->debuglevel, 
                     "USER", "prepare", $finaldata);
                 $this->do = self::DO_CREATE;
             }
@@ -623,7 +623,7 @@ class tool_uploaduser_user {
      */
     public function proceed() {
 
-        tool_uploaduser_debug::show("Entering proceed.", LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Entering proceed.", LOW, $this->debuglevel, "USER");
 
         if (!$this->prepared) {
             throw new coding_exception('The course has not been prepared.');
@@ -636,7 +636,7 @@ class tool_uploaduser_user {
 
         if ($this->do === self::DO_DELETE) {
 
-            tool_uploaduser_debug::show("Deleting.", LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Deleting.", LOW, $this->debuglevel, "USER");
 
             $this->finaldata = $this->existing;
             $this->id = $this->existing->id;
@@ -726,10 +726,10 @@ class tool_uploaduser_user {
                 if ($existingdata->$field) {
                     continue;
                 }
-            } else if ($this->updatemode === tool_uploaduser_processor::UPDATE_ALL_WITH_SATA_OR_DEFAULTS) {
+            } else if ($this->updatemode === tool_uploadusercli_processor::UPDATE_ALL_WITH_SATA_OR_DEFAULTS) {
                 // Override everything.
 
-            } else if ($this->updatemode === tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_ONLY) {
+            } else if ($this->updatemode === tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_ONLY) {
                 if (!empty($this->defaults[$field])) {
                     // Do not override with form defaults.
                     continue;
@@ -779,7 +779,7 @@ class tool_uploaduser_user {
     protected function get_final_create_data($data) {
         global $CFG, $DB;
 
-        tool_uploaduser_debug::show("Entering get_final_create_data.", LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Entering get_final_create_data.", LOW, $this->debuglevel, "USER");
 
         $data->confirmed = 1;
         $data->timemodified = time();
@@ -836,10 +836,10 @@ class tool_uploaduser_user {
 
         if ($isinternalauth) {
 
-            tool_uploaduser_debug::show("Checking password.", LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Checking password.", LOW, $this->debuglevel, "USER");
 
             if (empty($data->password)) {
-                if ($this->importoptions['passwordmode'] === tool_uploaduser_processor::PASSWORD_MODE_GENERATE) {
+                if ($this->importoptions['passwordmode'] === tool_uploadusercli_processor::PASSWORD_MODE_GENERATE) {
                     $data->password = 'to be generated';
                 } else {
                     $this->error('missingfield', new lang_string('missingfield',
@@ -848,9 +848,9 @@ class tool_uploaduser_user {
                 }
             } else {
                 $errmsg = null;
-                $resetpasswords = $this->importoptions['forcepasswordchange'] == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_NONE ? false : true;
+                $resetpasswords = $this->importoptions['forcepasswordchange'] == tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_NONE ? false : true;
                 $weak = !check_password_policy($data->password, $errmsg);
-                if ($this->importoptions['forcepasswordchange'] == tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_ALL ||
+                if ($this->importoptions['forcepasswordchange'] == tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_ALL ||
                         ($resetpasswords && $weak)) {
                     $this->needpasswordchange = true;
                 }

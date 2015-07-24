@@ -116,10 +116,10 @@ $processoroptions = array(
 
 // Confirm that the mode is valid.
 $modes = array(
-    'createnew' => tool_uploaduser_processor::MODE_CREATE_NEW,
-    'createall' => tool_uploaduser_processor::MODE_CREATE_ALL,
-    'createorupdate' => tool_uploaduser_processor::MODE_CREATE_OR_UPDATE,
-    'update' => tool_uploaduser_processor::MODE_UPDATE_ONLY
+    'createnew' => tool_uploadusercli_processor::MODE_CREATE_NEW,
+    'createall' => tool_uploadusercli_processor::MODE_CREATE_ALL,
+    'createorupdate' => tool_uploadusercli_processor::MODE_CREATE_OR_UPDATE,
+    'update' => tool_uploadusercli_processor::MODE_UPDATE_ONLY
 );
 
 if (!isset($options['mode']) || !isset($modes[$options['mode']])) {
@@ -131,14 +131,14 @@ $processoroptions['mode'] = $modes[$options['mode']];
 
 // Check that the update mode is valid.
 $updatemodes = array(
-    'nothing' => tool_uploaduser_processor::UPDATE_NOTHING,
-    'dataonly' => tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_ONLY,
-    'dataordefaults' => tool_uploaduser_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS,
-    'missingonly' => tool_uploaduser_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS
+    'nothing' => tool_uploadusercli_processor::UPDATE_NOTHING,
+    'dataonly' => tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_ONLY,
+    'dataordefaults' => tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS,
+    'missingonly' => tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS
 );
 
-if (($processoroptions['mode'] === tool_uploaduser_processor::MODE_CREATE_OR_UPDATE ||
-        $processoroptions['mode'] === tool_uploaduser_processor::MODE_UPDATE_ONLY)
+if (($processoroptions['mode'] === tool_uploadusercli_processor::MODE_CREATE_OR_UPDATE ||
+        $processoroptions['mode'] === tool_uploadusercli_processor::MODE_UPDATE_ONLY)
         && (!isset($options['updatemode']) || !isset($updatemodes[$options['updatemode']]))) {
     echo get_string('invalideupdatemode', 'tool_uploaduser')."\n";
     echo $help;
@@ -149,8 +149,8 @@ $processoroptions['updatemode'] = $updatemodes[$options['updatemode']];
 
 // Check that password creation mode is valid.
 $passwordmodes = array(
-    'generate' => tool_uploaduser_processor::PASSWORD_MODE_GENERATE,
-    'field' => tool_uploaduser_processor::PASSWORD_MODE_FIELD, 
+    'generate' => tool_uploadusercli_processor::PASSWORD_MODE_GENERATE,
+    'field' => tool_uploadusercli_processor::PASSWORD_MODE_FIELD, 
 );
 
 if (!isset($options['passwordmode']) || !isset($passwordmodes[$options['passwordmode']])) {
@@ -162,9 +162,9 @@ $processoroptions['passwordmode'] = $passwordmodes[$options['passwordmode']];
 
 // Check if enforcing password changing is valid.
 $forcepasswordchanges = array(
-    'none' => tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_NONE,
-    'weak' => tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_WEAK,
-    'all' => tool_uploaduser_processor::FORCE_PASSWORD_CHANGE_ALL,
+    'none' => tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_NONE,
+    'weak' => tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_WEAK,
+    'all' => tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_ALL,
 );
 
 if (!isset($options['forcepasswordchange']) || !isset($forcepasswordchanges[$options['forcepasswordchange']])) {
@@ -222,7 +222,7 @@ if ($readcount === false) {
 
 unset($content);
 
-$processor = new tool_uploaduser_processor($cir, $processoroptions);
+$processor = new tool_uploadusercli_processor($cir, $processoroptions);
 $processor->execute();
 
 print "Done.\n";

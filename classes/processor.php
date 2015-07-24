@@ -34,7 +34,7 @@ require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class tool_uploaduser_processor {
+class tool_uploadusercli_processor {
 
     /**
      * Create users that do not exist yet.
@@ -219,7 +219,7 @@ class tool_uploaduser_processor {
             $this->debuglevel = $options['debuglevel'];
         }
 
-        tool_uploaduser_debug::show("Entered constructor.", LOW, $this->debuglevel, "PROCESSOR");
+        tool_uploadusercli_debug::show("Entered constructor.", LOW, $this->debuglevel, "PROCESSOR");
 
         // Get all the possible user name fields.
         $this->standardfields = array_merge($this->standardfields, get_all_user_name_fields());
@@ -243,7 +243,7 @@ class tool_uploaduser_processor {
         $this->columns = uu_validate_user_upload_columns($this->cir, $this->standardfields, $this->profilefields, $uselessurl);
         $this->reset();
 
-        tool_uploaduser_debug::show("New class created", VERBOSE, $this->debuglevel, "PROCESSOR", "__construct", $this);
+        tool_uploadusercli_debug::show("New class created", VERBOSE, $this->debuglevel, "PROCESSOR", "__construct", $this);
     }
 
     /**
@@ -255,7 +255,7 @@ class tool_uploaduser_processor {
     public function execute($tracker = null) {
         global $DB;
 
-        tool_uploaduser_debug::show("Entered execute.", LOW, $this->debuglevel, "PROCESSOR");
+        tool_uploadusercli_debug::show("Entered execute.", LOW, $this->debuglevel, "PROCESSOR");
 
         if ($this->processstarted) {
             throw new moodle_exception('process_already_started', 'error');
@@ -263,7 +263,7 @@ class tool_uploaduser_processor {
         $this->processstarted = true;
 
         if (is_null($tracker)) {
-            $tracker = new tool_uploaduser_tracker(tool_uploaduser_tracker::OUTPUT_PLAIN);
+            $tracker = new tool_uploadusercli_tracker(tool_uploadusercli_tracker::OUTPUT_PLAIN);
         }
         $tracker->start();
 
@@ -288,7 +288,7 @@ class tool_uploaduser_processor {
             if ($user->prepare()) {
                 $user->proceed();
 
-                tool_uploaduser_debug::show("User prepared.", LOW, $this->debuglevel, "PROCESSOR");
+                tool_uploadusercli_debug::show("User prepared.", LOW, $this->debuglevel, "PROCESSOR");
 
                 $status = $user->get_statuses();
                 if (array_key_exists('useradded', $status)) {
@@ -299,14 +299,14 @@ class tool_uploaduser_processor {
                     $deleted++;
                 }
                 
-                tool_uploaduser_debug::show("User prepared.", VERBOSE, $this->debuglevel, 
+                tool_uploadusercli_debug::show("User prepared.", VERBOSE, $this->debuglevel, 
                     "PROCESSOR", "execute", $status);
 
                 $data = array_merge($data, $user->get_finaldata(), array('id' => $user->get_id()));
                 $tracker->output($this->linenum, true, $status, $data);
             } else {
 
-                tool_uploaduser_debug::show("User prepare failed.", LOW, $this->debuglevel, "PROCESSOR");
+                tool_uploadusercli_debug::show("User prepare failed.", LOW, $this->debuglevel, "PROCESSOR");
 
                 $errors++;
                 $tracker->output($this->linenum, false, $user->get_errors(), $data);
@@ -319,7 +319,7 @@ class tool_uploaduser_processor {
      * Return a user import object.
      *
      * @param array $data to import the user with.
-     * @return tool_uploaduser_user
+     * @return tool_uploadusercli_user
      */
     protected function get_user($data) {
         $importoptions = array(
@@ -334,7 +334,7 @@ class tool_uploaduser_processor {
             'debuglevel'            => $this->debuglevel,
         );
 
-        return new tool_uploaduser_user($this->mode, $this->updatemode, $data, $importoptions);
+        return new tool_uploadusercli_user($this->mode, $this->updatemode, $data, $importoptions);
     }
 
     /**

@@ -36,7 +36,7 @@ define('VERBOSE', 2);
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-class tool_uploaduser_debug {
+class tool_uploadusercli_debug {
 
     /** @var int debug level. */
     protected $debuglevel = -1;
