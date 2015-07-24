@@ -331,7 +331,8 @@ class tool_uploadusercli_processor {
             'debuglevel'            => $this->debuglevel,
         );
 
-        return new tool_uploadusercli_user($this->mode, $this->updatemode, $data, $importoptions);
+        return new tool_uploadusercli_user($this->mode, $this->updatemode, $data, $importoptions,
+                                            $this->standardfields, $this->profilefields);
     }
 
     /**

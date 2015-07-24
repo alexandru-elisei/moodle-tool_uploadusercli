@@ -99,6 +99,12 @@ class tool_uploadusercli_user {
     /** @var string username. */
     protected $username;
 
+    /** @var array CSV standard fields. */
+    protected $standardfields = array();
+
+    /** @var array CSV profile fields. */
+    protected $profilefields = array();
+
     /** @var array fields required on user creation. */
     static protected $mandatoryfields = array('username', 'firstname', 'lastname', 'email');
 
@@ -115,7 +121,8 @@ class tool_uploadusercli_user {
      * @param array $rawdata raw user data.
      * @param array $importoptions import options.
      */
-    public function __construct($mode, $updatemode, $rawdata, $importoptions = array()) {
+    public function __construct($mode, $updatemode, $rawdata, $importoptions = array(),
+                                $standardfields, $profilefields) {
         global $CFG;
 
         if ($mode !== tool_uploadusercli_processor::MODE_CREATE_NEW &&
@@ -160,6 +167,12 @@ class tool_uploadusercli_user {
 
         // Supported authentification plugins.
         $this->supportedauths = uu_supported_auths();
+
+        // CSV standard fields.
+        $this->standardfields = $standardfields;
+
+        // CSV profile fields.
+        $this->profilefields = $profilefields;
 
         tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE, $this->debuglevel,
             "USER", "__construct", $this);
@@ -643,19 +656,6 @@ class tool_uploadusercli_user {
                 set_user_preference('create_password', 1, $this->finaldata);
             }
 
-            /*
-            print "\nfinal data:\n";
-            var_dump($this->finaldata);
-             */
-            
-            // Trigger event.
-            \core\event\user_created::create_from_userid($this->finaldata->id)->trigger();
-            
-            /*
-            print "\nfinal data:\n";
-            var_dump($this->finaldata);
-             */
-
             $this->set_status('useradded', new lang_string('newuser'));
         }
 
@@ -672,7 +672,7 @@ class tool_uploadusercli_user {
      * @param bool $missingonly ignore fields which are already set.
      * @return array
      */
-    protected function get_final_update_data($data, $existingdata, $usedefaults = false, $missingonly = false) {
+    protected function get_final_update_data($newdata, $existingdata, $usedefaults = false, $missingonly = false) {
         global $DB;
 
         $dologout = false;
@@ -681,18 +681,20 @@ class tool_uploadusercli_user {
         profile_load_data($existingdata);
 
         // Changing auth information.
-        if (!empty($existingdata->auth) && $data->auth) {
-            $existingdata->auth = $data->auth;
-            if ($data->auth === 'nologin') {
+        if (!empty($existingdata->auth) && $newdata->auth) {
+            $existingdata->auth = $newdata->auth;
+            if ($newdata->auth === 'nologin') {
                 $dologout = true;
             }
         }
+
+        //$stdfields = 
         foreach ($this->validfields as $field) {
             if ($field === 'username' || $field === 'password' ||
                 $field === 'auth' || $field === 'suspended')
                 continue;
 
-            if (!$data->$field || !$existingdata->$field) {
+            if (!$newdata->$field || !$existingdata->$field) {
                 continue;
             }
             if ($missingonly) {
@@ -709,10 +711,10 @@ class tool_uploadusercli_user {
                 }
             }
 
-            if ($existingdata->$field !== $data->$field) {
+            if ($existingdata->$field !== $newdata->$field) {
                 // Checking email.
                 if ($field === 'email') {
-                    if ($DB->record_exists('user', array('email' => $data->email))) {
+                    if ($DB->record_exists('user', array('email' => $newdata->email))) {
                         if ($this->importoptions['noemailduplicates']) {
                             $this->error('useremailduplicate', new lang_string('useremailduplicate',
                                 'error'));
@@ -721,19 +723,19 @@ class tool_uploadusercli_user {
                                 'error'));
                         }
                     }
-                    if (!validate_email($data->email)) {
+                    if (!validate_email($newdata->email)) {
                         $this->set_status('invalidemail', new lang_string('invalidemail', 'warning'));
                     }
                 } else if ($field === 'lang') {
-                    if (empty($data->lang)) {
+                    if (empty($newdata->lang)) {
                         // Don't change language if not already set.
                         continue;
-                    } else if (clean_param($data->lang, PARAM_LANG) === '') {
+                    } else if (clean_param($newdata->lang, PARAM_LANG) === '') {
                         $this->set_status('cannotfindlang', new lang_string('cannotfindlang', 'error'));
                         continue;
                     }
                 } else {
-                    $existingdata->$field = $data->$field;
+                    $existingdata->$field = $newdata->$field;
                     $doupdate = true;
                 }
             }
