@@ -677,7 +677,7 @@ class tool_uploadusercli_user {
     /**
      * Assemble the user data.
      *
-     * This returns the final data to be passed to update_category().
+     * This returns the final data to be passed to update_user().
      *
      * @param array $finaldata current data.
      * @param bool $usedefaults are defaults allowed?
@@ -701,7 +701,7 @@ class tool_uploadusercli_user {
         }
 
         $allfields = array_merge($this->standardfields, $this->profilefields);
-        foreach ($allcolumns as $field) {
+        foreach ($allfields as $field) {
             // These fields are being processed somewhere else.
             if ($field === 'username' || $field === 'password' ||
                 $field === 'auth' || $field === 'suspended')
@@ -715,7 +715,7 @@ class tool_uploadusercli_user {
                 if ($existingdata->$field) {
                     continue;
                 }
-            } else if ($this->updatemode === tool_uploadusercli_processor::UPDATE_ALL_WITH_SATA_OR_DEFAULTS) {
+            } else if ($this->updatemode === tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS) {
                 // Override everything.
 
             } else if ($this->updatemode === tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_ONLY) {
@@ -732,6 +732,7 @@ class tool_uploadusercli_user {
                         if ($this->importoptions['noemailduplicates']) {
                             $this->error('useremailduplicate', new lang_string('useremailduplicate',
                                 'error'));
+                            return false;
                         } else {
                             $this->set_status('useremailduplicate', new lang_string('useremailduplicate',
                                 'error'));

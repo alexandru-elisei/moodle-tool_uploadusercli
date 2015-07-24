@@ -412,6 +412,68 @@ php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 make_pristine
 
 
+# Updating (failure - new email exists, noemailduplicates set)
+((no++))
+# First user
+create_silent "username,firstname,lastname,email" \
+       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+# User to be modified
+create_silent "username,firstname,lastname,email" \
+       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+create_text "${no}. Updating" "failure - new email exists, noemailduplicates set"\
+	"username,firstname,lastname,email" \
+       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
+php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --noemailduplicates=true
+
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+# User to be modified
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+
+# Updating (warning - new email exists, noemailduplicates unset)
+((no++))
+# First user
+create_silent "username,firstname,lastname,email" \
+       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+# User to be modified
+create_silent "username,firstname,lastname,email" \
+       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+create_text "${no}. Updating" "warning - new email exists, noemailduplicates unset"\
+	"username,firstname,lastname,email" \
+       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
+php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --noemailduplicates=false
+
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+# User to be modified
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+
 # Cleaning the environment
 unset output_file
 unset options
