@@ -510,6 +510,26 @@ create_silent "username,firstname,lastname,email,deleted" \
 php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 make_pristine
 
+
+# Renaming (success)
+((no++))
+create_silent "username,firstname,lastname,email" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+create_text "${no}. Renaming" "success"\
+	"username,firstname,lastname,email,oldusername" \
+       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
+php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+
+create_silent "username,firstname,lastname,email,deleted" \
+       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+
+
 # Cleaning the environment
 unset output_file
 unset options

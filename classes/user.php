@@ -328,23 +328,6 @@ class tool_uploadusercli_user {
     }
 
     /**
-     * Delete the current user.
-     *
-     * @return bool
-     */
-    protected function delete() {
-        global $DB;
-
-        try {
-            $ret = delete_user($this->existing);
-        }
-        catch (moodle_exception $e) {
-            return false;
-        }
-        return $ret;
-    }
-
-    /**
      * Validates and prepares the data.
      *
      * @return bool false is any error occured.
@@ -467,14 +450,6 @@ class tool_uploadusercli_user {
             }
             $this->existing = $this->exists($oldusername);
 
-            /*
-            print "Old user to be updated:\n";
-            var_dump($this->existing);
-
-            print "Siteadmins:\n";
-            var_dump($CFG->siteadmins);
-            */
-
             if (!$this->can_update()) {
                 $this->error('usernotupdatederror', 
                     new lang_string('usernotupdatederror', 'error'));
@@ -532,16 +507,6 @@ class tool_uploadusercli_user {
             tool_uploadusercli_debug::show("Username incremented.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
         }  
 
-        /*
-        // Check if idnumber is already taken
-        if (!$this->existing && isset($finaldata['idnumber']) &&
-                $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
-            $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
-                'tool_uploadusercli'));
-            return false;
-        }
-         */
-
         tool_uploadusercli_debug::show("Last sanity checks...", UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
         // Ultimate check mode vs. existence.
@@ -590,14 +555,26 @@ class tool_uploadusercli_user {
             tool_uploadusercli_debug::show("Getting final update data.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
             $missingonly = ($updatemode === tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
+
+            print "Finaldata, BEFORE calling get_final_update_data:\n";
+            var_dump($finaldata);
+            print "Existing:\n";
+            var_dump($this->existing);
+            
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
+
+            /*
+            print "Finaldata, after calling get_final_update_data:\n";
+            var_dump($finaldata);
+             */
+
             if (!$finaldata) {
                 $this->error('usernotupdatederror', new lang_string('usernotupdatederror', 'error'));
                 return false;
             } else {
 
 
-                tool_uploadusercli_debug::show("Final update data.", UUC_DEBUG_VERBOSE, $this->debuglevel,
+                tool_uploadusercli_debug::show("Finaldata:", UUC_DEBUG_VERBOSE, $this->debuglevel,
                                                 "USER", "prepare", $finaldata);
 
                 $this->do = self::DO_UPDATE;
@@ -648,9 +625,14 @@ class tool_uploadusercli_user {
 
             $this->finaldata = $this->existing;
             $this->id = $this->existing->id;
-            if ($this->delete()) {
+             try {
+                $deletesuccess = delete_user($this->existing);
+            } catch (moodle_exception $e) {
+                $deletesuccess = false;
+            }
+            if ($deletesuccess) {
                 $this->set_status('userdeleted', 
-                    new lang_string('userdeleted', 'tool_uploadusercli'));
+                    new lang_string('userdeleted', 'tool_uploaduser'));
             } else {
                 $this->error('usernotdeletederror', new lang_string('usernotdeletederror',
                     'error'));
@@ -659,8 +641,7 @@ class tool_uploadusercli_user {
         } else if ($this->do === self::DO_CREATE) {
             try {
                 $this->finaldata->id = user_create_user($this->finaldata, false, false);
-            }
-            catch (Exception $e) {
+            } catch (Exception $e) {
                 $this->error('errorcreatinguser',
                     new lang_string('errorcreatinguser', 'tool_uploadusercli'));
                 return false;
@@ -687,6 +668,7 @@ class tool_uploadusercli_user {
                     new lang_string('usernotupdatederror', 'tool_uploadusercli'));
                 return false;
             }
+            $this->id = $this->finaldata->id;
 
             // Wrong - class variable remoteuser
             /*
@@ -700,9 +682,14 @@ class tool_uploadusercli_user {
                 \core\session\manager::kill_user_sessions($this->finaldata->id);
             }
 
+
             // DO SCRIPTS FOR BULK
             
             $this->set_status('useraccountupdated', new lang_string('useraccountupdated', 'tool_uploaduser'));
+        }
+
+        if ($this->do === self::DO_UPDATE || $this->do === self::DO_CREATE) {
+            $this->add_to_cohort();
         }
     }
 
@@ -724,6 +711,8 @@ class tool_uploadusercli_user {
         $existingdata->timemodified = time();
         profile_load_data($existingdata);
 
+        //var_dump($existingdata);
+
         // Changing auth information.
         if (!empty($existingdata->auth) && $data->auth) {
             $existingdata->auth = $data->auth;
@@ -740,7 +729,7 @@ class tool_uploadusercli_user {
                 continue;
 
             // Field not present in the CSV file.
-            if (!$data->$field || !$existingdata->$field) {
+            if (!$data->$field && !$existingdata->$field) {
                 continue;
             }
             if ($missingonly) {
@@ -782,7 +771,12 @@ class tool_uploadusercli_user {
                         continue;
                     }
                 }
-                $existingdata->$field = $data->$field;
+                if (!empty($data->$field) && $data->$field !== '') {
+                    $existingdata->$field = $data->$field;
+                } else if (empty($existingdata->$field) || $existingdata->$field !== '') {
+                    $existingdata->$field = $data->$field;
+                }
+
                 $doupdate = true;
             }
         }
@@ -928,4 +922,83 @@ class tool_uploadusercli_user {
         //$data->id = user_create_user($data, false, false);
         return $data;
     }
+
+    /**
+     * Adds an user to a cohort.
+     *
+     * @return void.
+     */
+    protected function add_to_cohort() {
+        global $DB;
+        $cohorts = array();
+
+        tool_uploadusercli_debug::show("Entering add_to_cohort", UUC_DEBUG_LOW, $this->debuglevel, 'USER');
+
+        foreach ($this->finaldata as $field => $value) {
+
+        //    print "field = $field\n";
+
+            if (!preg_match('/^cohort\d+$/', $field)) {
+                continue;
+            }
+
+         //   print "found cohort field: $field\n";
+
+            $addcohort = $value;
+            if (!isset($cohorts[$addcohort])) {
+                if (is_number($addcohort)) {
+                    $cohort = $DB->get_record('cohort', array('id' => $addcohort));
+                } else {
+                    $cohort = $DB->get_record('cohort', array('idnumber' => $addcohort));
+                    // Creating cohort.
+                    if (empty ($cohort)) {
+                        try {
+                            $cohortid = cohort_add_cohort((object) array(
+                                'idnumber' => $addcohort,
+                                'name' => $addcohort,
+                                'contextid' => context_system::instance() ->id,
+                            ));
+                        } catch (Exception $e) {
+                            $this->set_status($e->getMessage(), new lang_string (
+                                $e->getMessage(), 'tool_uploadusercli'
+                            ));
+                            return;
+                        }
+
+                        $cohort = $DB->get_record('cohort', array('id' => $cohortid));
+                    }
+                }
+
+                if (empty($cohort)) {
+                    $cohorts[$addcohort] = get_string('unknowncohort', 'core_cohort', s($addcohort));
+                } else if (!empty($cohort->component)) {
+                    // Cohorts synced with external sources need not be modified
+                    $cohorts[$addcohort] = get_string('external', 'core_cohort');
+                } else {
+                    $cohorts[$addcohort] = $cohort;
+                }
+            }
+
+            if (is_object($cohorts[$addcohort])) {
+                $cohort = $cohorts[$addcohort];
+                if ($DB->record_exists('cohort_members', array('cohortid' => $cohort->id, 'userid' => $this->finaldata->id))) {
+                    try {
+                        cohort_add_member($cohort->id, $this->finaldata->id);
+                    } catch (Exception $e) {
+                        $this->set_status($e->getMessage(), new lang_string(
+                            $e->getMessage(), 'tool_uploadusercli'
+                        ));
+                        return;
+                    }
+                } else {
+                    $this->set_status('erroraddingtocohort', new lang_string(
+                        'erroraddingtocohort', 'tool_uploadusercli'
+                    ));
+                }
+            }
+
+            print "user added to cohort $cohort\n";
+        }
+    }
+
 }

@@ -236,8 +236,8 @@ class tool_uploadusercli_processor {
         }
 
         $this->cir = $cir;
-        $uselessurl = new moodle_url('/admin/tool/uploaduser/index.php');
-        $this->columns = uu_validate_user_upload_columns($this->cir, $this->standardfields, $this->profilefields, $uselessurl);
+        $phonyurl = new moodle_url('/admin/tool/uploaduser/index.php');
+        $this->columns = uu_validate_user_upload_columns($this->cir, $this->standardfields, $this->profilefields, $phonyurl);
         $this->reset();
 
         tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE, $this->debuglevel, "PROCESSOR", "__construct", $this);
