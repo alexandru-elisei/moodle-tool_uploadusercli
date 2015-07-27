@@ -797,6 +797,9 @@ class tool_uploadusercli_user {
         }
 
         $oldpasswd = $existingdata->password;
+
+        print "oldpassword = $oldpasswd\n";
+
         if (!$isinternalauth) {
             $existingdata->password = AUTH_PASSWORD_NOT_CACHES;
             unset_user_preference('create_password', $existingdata);
@@ -813,9 +816,11 @@ class tool_uploadusercli_user {
                     unset_user_preference('auth_forcepasswordchange', $existingdata);
                 }
                 unset_user_preference('create_password', $existingdata);
-                $existingdata->pasword = hash_internal_user_password($data->password, true);
+                $existingdata->password = hash_internal_user_password($data->password, true);
             }
         }
+
+        print "newpassword = $existingdata->password\n";
 
         return $existingdata;
     }
