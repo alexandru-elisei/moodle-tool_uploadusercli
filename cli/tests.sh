@@ -529,6 +529,23 @@ php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 make_pristine
 
 
+# Updating (success - cohort created)
+((no++))
+create_silent "username,firstname,lastname,email" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+create_text "${no}. Updating" "success - cohort created"\
+	"username,firstname,lastname,email,cohort1" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,new_cohort"
+php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
 
 # Cleaning the environment
 unset output_file

@@ -555,24 +555,12 @@ class tool_uploadusercli_user {
             tool_uploadusercli_debug::show("Getting final update data.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
             $missingonly = ($updatemode === tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
-
-            print "Finaldata, BEFORE calling get_final_update_data:\n";
-            var_dump($finaldata);
-            print "Existing:\n";
-            var_dump($this->existing);
-            
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
-
-            /*
-            print "Finaldata, after calling get_final_update_data:\n";
-            var_dump($finaldata);
-             */
 
             if (!$finaldata) {
                 $this->error('usernotupdatederror', new lang_string('usernotupdatederror', 'error'));
                 return false;
             } else {
-
 
                 tool_uploadusercli_debug::show("Finaldata:", UUC_DEBUG_VERBOSE, $this->debuglevel,
                                                 "USER", "prepare", $finaldata);
@@ -679,7 +667,7 @@ class tool_uploadusercli_user {
              */
             
             if ($this->dologout) {
-                \core\session\manager::kill_user_sessions($this->finaldata->id);
+                \core\session\manager::kill_user_sessions($this->id);
             }
 
 
@@ -732,6 +720,7 @@ class tool_uploadusercli_user {
             if (!$data->$field && !$existingdata->$field) {
                 continue;
             }
+
             if ($missingonly) {
                 if ($existingdata->$field) {
                     continue;
@@ -771,9 +760,8 @@ class tool_uploadusercli_user {
                         continue;
                     }
                 }
+                // A new field was added to data while processing it.
                 if (!empty($data->$field) && $data->$field !== '') {
-                    $existingdata->$field = $data->$field;
-                } else if (empty($existingdata->$field) || $existingdata->$field !== '') {
                     $existingdata->$field = $data->$field;
                 }
 
@@ -932,18 +920,15 @@ class tool_uploadusercli_user {
         global $DB;
         $cohorts = array();
 
-        tool_uploadusercli_debug::show("Entering add_to_cohort", UUC_DEBUG_LOW, $this->debuglevel, 'USER');
+        tool_uploadusercli_debug::show("Entering add_to_cohort", UUC_DEBUG_LOW,
+                                        $this->debuglevel, 'USER');
 
-        foreach ($this->finaldata as $field => $value) {
-
-        //    print "field = $field\n";
-
+        // Cohort is not a standard or profile field, it is not saved in the 
+        // finaldata.
+        foreach ($this->rawdata as $field => $value) {
             if (!preg_match('/^cohort\d+$/', $field)) {
                 continue;
             }
-
-         //   print "found cohort field: $field\n";
-
             $addcohort = $value;
             if (!isset($cohorts[$addcohort])) {
                 if (is_number($addcohort)) {
@@ -951,7 +936,7 @@ class tool_uploadusercli_user {
                 } else {
                     $cohort = $DB->get_record('cohort', array('idnumber' => $addcohort));
                     // Creating cohort.
-                    if (empty ($cohort)) {
+                    if (empty($cohort)) {
                         try {
                             $cohortid = cohort_add_cohort((object) array(
                                 'idnumber' => $addcohort,
@@ -970,7 +955,9 @@ class tool_uploadusercli_user {
                 }
 
                 if (empty($cohort)) {
-                    $cohorts[$addcohort] = get_string('unknowncohort', 'core_cohort', s($addcohort));
+                    $this->set_status("unknowncohort", new lang_string(
+                        'unknowncohort', 'tool_uploadusercli'
+                    ));
                 } else if (!empty($cohort->component)) {
                     // Cohorts synced with external sources need not be modified
                     $cohorts[$addcohort] = get_string('external', 'core_cohort');
@@ -981,7 +968,7 @@ class tool_uploadusercli_user {
 
             if (is_object($cohorts[$addcohort])) {
                 $cohort = $cohorts[$addcohort];
-                if ($DB->record_exists('cohort_members', array('cohortid' => $cohort->id, 'userid' => $this->finaldata->id))) {
+                if (!$DB->record_exists('cohort_members', array('cohortid' => $cohort->id, 'userid' => $this->id))) {
                     try {
                         cohort_add_member($cohort->id, $this->finaldata->id);
                     } catch (Exception $e) {
@@ -990,14 +977,15 @@ class tool_uploadusercli_user {
                         ));
                         return;
                     }
+                    $this->set_status('cohortcreateduseradded', new lang_string(
+                        'cohortcreateduseradded', 'tool_uploadusercli'
+                    ));
                 } else {
                     $this->set_status('erroraddingtocohort', new lang_string(
                         'erroraddingtocohort', 'tool_uploadusercli'
                     ));
                 }
             }
-
-            print "user added to cohort $cohort\n";
         }
     }
 
