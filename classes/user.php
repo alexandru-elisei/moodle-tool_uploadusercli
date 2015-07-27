@@ -240,6 +240,15 @@ class tool_uploadusercli_user {
     }
 
     /**
+     * Do we need to reset the password?
+     *
+     * @return bool
+     */
+    protected function reset_password() {
+        return $this->importoptions['forcepasswordchange'] == tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_NONE ? false : true;
+    }
+
+    /**
      * Does the mode allow for user update?
      *
      * @return bool
@@ -483,14 +492,14 @@ class tool_uploadusercli_user {
             tool_uploadusercli_debug::show("Renaming queued.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
             $this->set_status('userrenamed', new lang_string('userrenamed', 
-                'tool_uploaduser', array('from' => $oldname, 'to' => $finaldata->name)));
+                'tool_uploadusercli', array('from' => $oldname, 'to' => $finaldata->name)));
         }
 
         // Do not update admin and guest account through the csv.
         if ($this->existing) {
             if (is_siteadmin($this->existing)) {
                 $this->error('usernotupdatedadmin',
-                    new lang_string('usernotupdatedadmin',  'tool_uploaduser'));
+                    new lang_string('usernotupdatedadmin',  'tool_uploadusercli'));
                 return false;
             } else if ($this->existing->username === 'guest') {
                 $this->error('guestnoeditprofileother', new lang_string('guestnoeditprofileother',
@@ -508,7 +517,7 @@ class tool_uploadusercli_user {
 
             if ($this->username !== $original) {
                 $this->set_status('userrenamed',
-                    new lang_string('userrenamed', 'tool_uploaduser',
+                    new lang_string('userrenamed', 'tool_uploadusercli',
                     array('from' => $original, 'to' => $this->name)));
                 /*
                 if (isset($finaldata['id'])) {
@@ -526,7 +535,7 @@ class tool_uploadusercli_user {
         if (!$this->existing && isset($finaldata['idnumber']) &&
                 $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
             $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
-                'tool_uploaduser'));
+                'tool_uploadusercli'));
             return false;
         }
          */
@@ -553,7 +562,7 @@ class tool_uploadusercli_user {
             case tool_uploadusercli_processor::MODE_UPDATE_ONLY:
                 if (!$this->existing) {
                     $this->error('usernotexistcreatenotallowed',
-                        new lang_string('usernotexistcreatenotallowed', 'tool_uploaduser'));
+                        new lang_string('usernotexistcreatenotallowed', 'tool_uploadusercli'));
                     return false;
                 }
                 break;
@@ -561,7 +570,7 @@ class tool_uploadusercli_user {
                 if ($this->existing) {
                     if ($this->updatemode === tool_uploadusercli_processor::UPDATE_NOTHING) {
                         $this->error('updatemodedoessettonothing',
-                            new lang_string('updatemodedoessettonothing', 'tool_uploaduser'));
+                            new lang_string('updatemodedoessettonothing', 'tool_uploadusercli'));
                         return false;
                     }
                 }
@@ -569,7 +578,7 @@ class tool_uploadusercli_user {
             default:
                 // O_o Huh?! This should really never happen here!
                 $this->error('unknownimportmode', new lang_string('unknownimportmode', 
-                    'tool_uploaduser'));
+                    'tool_uploadusercli'));
                 return false;
         }
 
@@ -639,7 +648,7 @@ class tool_uploadusercli_user {
             $this->id = $this->existing->id;
             if ($this->delete()) {
                 $this->set_status('userdeleted', 
-                    new lang_string('userdeleted', 'tool_uploaduser'));
+                    new lang_string('userdeleted', 'tool_uploadusercli'));
             } else {
                 $this->error('usernotdeletederror', new lang_string('usernotdeletederror',
                     'error'));
@@ -651,7 +660,7 @@ class tool_uploadusercli_user {
             }
             catch (Exception $e) {
                 $this->error('errorcreatinguser',
-                    new lang_string('errorcreatinguser', 'tool_uploaduser'));
+                    new lang_string('errorcreatinguser', 'tool_uploadusercli'));
                 return false;
             }
             $this->id = $this->finaldata->id;
@@ -664,12 +673,27 @@ class tool_uploadusercli_user {
                 $this->set_status('forcepasswordchange', new lang_string('forcepasswordchange'));
             }
             if ($this->finaldata->password === 'to be generated') {
-                set_user_preference('create_passwordolumns', 1, $this->finaldata);
+                set_user_preference('create_password', 1, $this->finaldata);
             }
 
             $this->set_status('useradded', new lang_string('newuser'));
-        }
+        } else if ($this->do === self::DO_UPDATE) {
+            try {
+                user_update_user($this->finaldata, false, false);
+            } catch (Exception $e) {
+                $this->error('usernotupdatederror',
+                    new lang_string('usernotupdatederror', 'tool_uploadusercli'));
+                return false;
+            }
+            if (!$remoteuser) {
+                $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
+                profile_save_data($existinguser);
+            }
 
+            // DO SCRIPTS FOR BULK
+            
+            $this->set_status('useraccountupdated', new lang_string('useraccountupdated', 'tool_uploaduser'));
+        }
     }
 
     /**
@@ -761,7 +785,7 @@ class tool_uploadusercli_user {
         }
 
         $isinternalauth = $auth->is_internal();
-        if ($this->importoptions['allowsuspends'] && isset($data->suspended) && data->suspended !=== '') {
+        if ($this->importoptions['allowsuspends'] && isset($data->suspended) && $data->suspended !== '') {
             $data->suspended = $data->suspended ? 1 : 0;
             if ($existingdata->suspended != $data->suspended) {
                 $existingdata->suspended = $data->suspended;
@@ -769,6 +793,27 @@ class tool_uploadusercli_user {
                 if ($existinguser->suspended) {
                     $dologout = true;
                 }
+            }
+        }
+
+        $oldpasswd = $existingdata->password;
+        if (!$isinternalauth) {
+            $existingdata->password = AUTH_PASSWORD_NOT_CACHES;
+            unset_user_preference('create_password', $existingdata);
+            unset_user_preference('auth_forcepasswordchange', $existingdata);
+        } else if (!empty($data->password)) {
+            if ($this->can_update() && 
+                    $this->updatemode != tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS) {
+                $errmsg = null;
+                $weak = !check_password_policy($data->password, $errmsg);
+                if ($this->importoptions['forcepassworchange'] === tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_ALL ||
+                        ($this->reset_password() && $weak)) {
+                    set_user_preference('auth_forcepasswordchange', $existingdata);
+                } else {
+                    unset_user_preference('auth_forcepasswordchange', $existingdata);
+                }
+                unset_user_preference('create_password', $existingdata);
+                $existingdata->pasword = hash_internal_user_password($data->password, true);
             }
         }
 
@@ -854,10 +899,9 @@ class tool_uploadusercli_user {
                 }
             } else {
                 $errmsg = null;
-                $resetpasswords = $this->importoptions['forcepasswordchange'] == tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_NONE ? false : true;
                 $weak = !check_password_policy($data->password, $errmsg);
                 if ($this->importoptions['forcepasswordchange'] == tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_ALL ||
-                        ($resetpasswords && $weak)) {
+                        ($this->reset_password() && $weak)) {
                     $this->needpasswordchange = true;
                 }
                 // Use a low cost factor when generating hash so it's not too

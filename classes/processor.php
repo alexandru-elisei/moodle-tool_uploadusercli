@@ -290,7 +290,7 @@ class tool_uploadusercli_processor {
                 $status = $user->get_statuses();
                 if (array_key_exists('useradded', $status)) {
                     $created++;
-                } else if (array_key_exists('coursecategoryupdated', $status)) {
+                } else if (array_key_exists('useraccountupdated', $status)) {
                     $updated++;
                 } else if (array_key_exists('userdeleted', $status)) {
                     $deleted++;
