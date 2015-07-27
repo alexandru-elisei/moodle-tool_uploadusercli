@@ -493,7 +493,7 @@ php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 make_pristine
 
 
-# Updating (success)
+# Updating (success - firstname,lastname)
 ((no++))
 create_silent "username,firstname,lastname,email" \
        	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"

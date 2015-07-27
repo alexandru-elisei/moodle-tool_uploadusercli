@@ -90,6 +90,9 @@ class tool_uploadusercli_user {
     /** @var bool set to true once we have prepared the user. */
     protected $prepared = false;
 
+    /** @var bool if we need to logout the user after updating. */
+    protected $dologout = false;
+
     /** @var bool set to true once we have started processing the user. */
     protected $processstarted = false;
 
@@ -389,7 +392,6 @@ class tool_uploadusercli_user {
                     'error'));
                 return false;
             } else if (is_siteadmin($this->existing->id)) {
-                print "is site admin!\n";
                 $this->error('usernotdeletedadmin', new lang_string('usernotdeletedadmin',
                     'error'));
                 return false;
@@ -685,9 +687,17 @@ class tool_uploadusercli_user {
                     new lang_string('usernotupdatederror', 'tool_uploadusercli'));
                 return false;
             }
+
+            // Wrong - class variable remoteuser
+            /*
             if (!$remoteuser) {
                 $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
                 profile_save_data($existinguser);
+            }
+             */
+            
+            if ($this->dologout) {
+                \core\session\manager::kill_user_sessions($this->finaldata->id);
             }
 
             // DO SCRIPTS FOR BULK
@@ -710,7 +720,6 @@ class tool_uploadusercli_user {
     protected function get_final_update_data($data, $existingdata, $usedefaults = false, $missingonly = false) {
         global $DB;
         $doupdate = false;
-        $dologout = false;
 
         $existingdata->timemodified = time();
         profile_load_data($existingdata);
@@ -719,7 +728,7 @@ class tool_uploadusercli_user {
         if (!empty($existingdata->auth) && $data->auth) {
             $existingdata->auth = $data->auth;
             if ($data->auth === 'nologin') {
-                $dologout = true;
+                $this->dologout = true;
             }
         }
 
@@ -790,16 +799,16 @@ class tool_uploadusercli_user {
             if ($existingdata->suspended != $data->suspended) {
                 $existingdata->suspended = $data->suspended;
                 $doupdate = true;
-                if ($existinguser->suspended) {
-                    $dologout = true;
+                if ($existingdata->suspended) {
+                    $this->dologout = true;
+                }
+                if ($existingdata->suspended) {
+                    $this->set_status('usersuspended', new lang_string('usersuspended', 'tool_uploadusercli'));
                 }
             }
         }
 
         $oldpasswd = $existingdata->password;
-
-        print "oldpassword = $oldpasswd\n";
-
         if (!$isinternalauth) {
             $existingdata->password = AUTH_PASSWORD_NOT_CACHES;
             unset_user_preference('create_password', $existingdata);
@@ -819,8 +828,6 @@ class tool_uploadusercli_user {
                 $existingdata->password = hash_internal_user_password($data->password, true);
             }
         }
-
-        print "newpassword = $existingdata->password\n";
 
         return $existingdata;
     }
