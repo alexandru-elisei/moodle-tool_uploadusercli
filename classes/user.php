@@ -54,12 +54,6 @@ class tool_uploadusercli_user {
     /** @var array default values. */
     protected $defaults = array();
 
-    /** @var int the ID of the user that has been processed. */
-    protected $id;
-
-    /** @var int the moodle net host id. */
-    protected $mnethostid;
-
     /** @var int if the user will need to change his/her password. */
     protected $needpasswordchange = false;
 
@@ -138,10 +132,9 @@ class tool_uploadusercli_user {
             $this->rawdata['username'] = trim($rawdata['username']);
         }
         if (empty($rawdata['mnethostid'])) {
-            $this->mnethostid = $CFG->mnet_localhost_id;
-        } else {
-            $this->mnethostid = $rawdata['mnethostid'];
+            $rawdata['mnethostid'] = (int) $CFG->mnet_localhost_id;
         }
+
         $this->debuglevel = UUC_DEBUG_NONE;
         if (!empty($importoptions['debuglevel'])) {
             $this->debuglevel = $importoptions['debuglevel'];
@@ -163,6 +156,8 @@ class tool_uploadusercli_user {
 
         tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE, 
                             $this->debuglevel, "USER", "__construct", $this);
+
+        //var_dump($this);
     }
 
     /**
@@ -305,7 +300,7 @@ class tool_uploadusercli_user {
             $username = $this->rawdata['username'];
         }
         if (is_null($mnethostid)) {
-            $mnethostid = $this->mnethostid;
+            $mnethostid = $this->rawdata['mnethostid'];
         }
 
         return $DB->get_record('user', array('username' => $username, 
@@ -343,7 +338,8 @@ class tool_uploadusercli_user {
                                                     $this->debuglevel, "USER");
 
         // Validate moodle net host id.
-        if (!is_numeric($this->mnethostid)) {
+        if (!is_numeric($this->rawdata['mnethostid'])) {
+            var_dump($this->rawdata['mnethostid']);
             $this->error('mnethostidnotanumber', 
                             new lang_string('mnethostidnotanumber', 'error'));
             return false;
@@ -426,8 +422,6 @@ class tool_uploadusercli_user {
         foreach ($this->rawdata as $field => $value) {
             $finaldata->$field = trim($value);
         }
-        $finaldata->mnethostid = $this->mnethostid;
-
         // Can the user be renamed?
         if (!empty($finaldata->oldusername)) {
             if ($this->existing) {
@@ -829,7 +823,8 @@ class tool_uploadusercli_user {
         $data->confirmed = 1;
         $data->timemodified = time();
         $data->timecreated = time();
-        // Only local accounts.
+        
+        // Only local accounts. Huh?
         $data->mnethostid = $CFG->mnet_localhost_id;
 
         if (!isset($data->suspended) || $data->suspended === '') {
