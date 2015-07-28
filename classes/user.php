@@ -288,7 +288,7 @@ class tool_uploadusercli_user {
             throw new coding_exception('The course has not been processed yet!');
         }
          */
-        return $this->id;
+        return $this->finaldata->id;
     }
 
     /**
@@ -602,8 +602,7 @@ class tool_uploadusercli_user {
                                                     $this->debuglevel, "USER");
 
             $this->finaldata = $this->existing;
-            $this->id = $this->existing->id;
-             try {
+            try {
                 $deletesuccess = delete_user($this->existing);
             } catch (moodle_exception $e) {
                 $deletesuccess = false;
@@ -624,7 +623,6 @@ class tool_uploadusercli_user {
                     new lang_string('errorcreatinguser', 'tool_uploadusercli'));
                 return false;
             }
-            $this->id = $this->finaldata->id;
 
             $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
             profile_save_data($this->finaldata);
@@ -647,7 +645,6 @@ class tool_uploadusercli_user {
                     new lang_string('usernotupdatederror', 'tool_uploadusercli'));
                 return false;
             }
-            $this->id = $this->finaldata->id;
 
             // Wrong - class variable remoteuser
             /*
@@ -658,7 +655,7 @@ class tool_uploadusercli_user {
              */
             
             if ($this->dologout) {
-                \core\session\manager::kill_user_sessions($this->id);
+                \core\session\manager::kill_user_sessions($this->finaldata->id);
             }
 
 
@@ -972,7 +969,7 @@ class tool_uploadusercli_user {
             if (is_object($cohorts[$addcohort])) {
                 $cohort = $cohorts[$addcohort];
                 if (!$DB->record_exists('cohort_members', 
-                        array('cohortid' => $cohort->id, 'userid' => $this->id))) {
+                        array('cohortid' => $cohort->id, 'userid' => $this->finaldata->id))) {
                     try {
                         cohort_add_member($cohort->id, $this->finaldata->id);
                     } catch (Exception $e) {
