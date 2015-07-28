@@ -704,9 +704,10 @@ class tool_uploadusercli_user {
         $allfields = array_merge($UUC_STD_FIELDS, $UUC_PRF_FIELDS);
         foreach ($allfields as $field) {
             // These fields are being processed separatedly.
-            if ($field === 'username' || $field === 'password' ||
-                $field === 'auth' || $field === 'suspended')
+            if ($field === 'password' || $field === 'auth' || 
+                $field === 'suspended' || $field === 'oldusername') {
                 continue;
+            }
 
             // Field not present in the CSV file.
             if (!$data->$field && !$existingdata->$field) {
@@ -728,8 +729,13 @@ class tool_uploadusercli_user {
             }
 
             if ($existingdata->$field !== $data->$field) {
-                // Checking email.
-                if ($field === 'email') {
+                // Renaming.
+                if ($field === 'username' && $this->rawdata['oldusername'] &&
+                                    $this->rawdata['oldusername'] !== '') {
+                    $existingdata->username = $this->rawdata['username'];
+                    $doupdate = true;
+                    continue;
+                } else if ($field === 'email') {
                     if ($DB->record_exists('user', array('email' => $data->email))) {
                         if ($this->importoptions['noemailduplicates']) {
                             $this->error('useremailduplicate',
