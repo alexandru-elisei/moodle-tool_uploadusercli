@@ -109,12 +109,12 @@ class tool_uploadusercli_user {
     protected $profilefields = array();
 
     /** @var array fields required on user creation. */
-    static protected $mandatoryfields = array('username', 'firstname', 'lastname', 'email');
+    static protected $mandatoryfields = array('username', 'firstname', 
+                                              'lastname', 'email');
 
     /** @var array fields which are considered as options. */
     static protected $optionfields = array('deleted' => false, 'suspended' => false,
-        'visible' => true, 'oldusername' => null
-    );
+                                    'visible' => true, 'oldusername' => null);
 
     /**
      * Constructor
@@ -177,8 +177,8 @@ class tool_uploadusercli_user {
         // CSV profile fields.
         $this->profilefields = $profilefields;
 
-        tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE, $this->debuglevel,
-            "USER", "__construct", $this);
+        tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE, 
+                            $this->debuglevel, "USER", "__construct", $this);
     }
 
     /**
@@ -324,7 +324,8 @@ class tool_uploadusercli_user {
             $mnethostid = $this->mnethostid;
         }
 
-        return $DB->get_record('user', array('username' => $username, 'mnethostid' => $mnethostid));
+        return $DB->get_record('user', array('username' => $username, 
+                                                'mnethostid' => $mnethostid));
     }
 
     /**
@@ -335,7 +336,8 @@ class tool_uploadusercli_user {
     public function prepare() {
         global $DB, $CFG;
 
-        tool_uploadusercli_debug::show("Entered prepare.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Entered prepare.", UUC_DEBUG_LOW, 
+                                                    $this->debuglevel, "USER");
 
         $this->prepared = true;
         
@@ -346,46 +348,49 @@ class tool_uploadusercli_user {
 
         // Validate username format
         if ($this->username !== clean_param($this->username, PARAM_USERNAME)) {
-            $this->error('invalidusername', new lang_string('invalidusername',
-                'error'));
+            $this->error('invalidusername', 
+                                new lang_string('invalidusername', 'error'));
             return false;
         }
 
-        tool_uploadusercli_debug::show("Validated username.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Validated username.", UUC_DEBUG_LOW, 
+                                                    $this->debuglevel, "USER");
 
         // Validate moodle net host id.
         if (!is_numeric($this->mnethostid)) {
-            $this->error('mnethostidnotanumber', new lang_string('mnethostidnotanumber',
-                'error'));
+            $this->error('mnethostidnotanumber', 
+                            new lang_string('mnethostidnotanumber', 'error'));
             return false;
         }
 
-        tool_uploadusercli_debug::show("Validated mnethostid.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Validated mnethostid.", UUC_DEBUG_LOW,
+                                                    $this->debuglevel, "USER");
 
         $this->existing = $this->exists();
 
         // Can we delete the user? We only need username for deletion.
         if (!empty($this->options['deleted'])) {
             if (empty($this->existing)) {
-                $this->error('usernotdeletedmissing', new lang_string('usernotdeletedmissing',
-                    'error'));
+                $this->error('usernotdeletedmissing', 
+                            new lang_string('usernotdeletedmissing', 'error'));
                 return false;
             } else if (!$this->can_delete()) {
-                $this->error('usernotdeletedoff', new lang_string('usernotdeletedoff',
-                    'error'));
+                $this->error('usernotdeletedoff', 
+                                new lang_string('usernotdeletedoff', 'error'));
                 return false;
             } else if (is_siteadmin($this->existing->id)) {
-                $this->error('usernotdeletedadmin', new lang_string('usernotdeletedadmin',
-                    'error'));
+                $this->error('usernotdeletedadmin', 
+                            new lang_string('usernotdeletedadmin', 'error'));
                 return false;
             } else if ($this->username === 'guest') {
-                $this->error('guestnoeditprofileother', new lang_string('guestnoeditprofileother',
-                    'error'));
+                $this->error('guestnoeditprofileother', 
+                        new lang_string('guestnoeditprofileother', 'error'));
                 return false;
             }
             $this->do = self::DO_DELETE;
 
-            tool_uploadusercli_debug::show("User deletion queued.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("User deletion queued.", UUC_DEBUG_LOW,
+                                                    $this->debuglevel, "USER");
 
             return true;
         }
@@ -397,7 +402,8 @@ class tool_uploadusercli_user {
             return false;
         }
 
-        tool_uploadusercli_debug::show("Validated id field.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Validated id field.", UUC_DEBUG_LOW, 
+                                                    $this->debuglevel, "USER");
  
         // Checking mandatory fields.
         foreach (self::$mandatoryfields as $key => $field) {
@@ -431,7 +437,7 @@ class tool_uploadusercli_user {
         // Preparing final user data.
         $finaldata = new stdClass();
         foreach ($this->rawdata as $field => $value) {
-            $finaldata->$field = trim($value);
+            $finaldata->$field = $value;
         }
         $finaldata->username = $this->username;
         $finaldata->mnethostid = $this->mnethostid;
@@ -466,7 +472,8 @@ class tool_uploadusercli_user {
 
             $this->do = self::DO_UPDATE;
 
-            tool_uploadusercli_debug::show("Renaming queued.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Renaming queued.", UUC_DEBUG_LOW,
+                                                    $this->debuglevel, "USER");
 
             $this->set_status('userrenamed', new lang_string('userrenamed', 
                 'tool_uploadusercli', array('from' => $oldname, 'to' => $finaldata->name)));
@@ -479,8 +486,8 @@ class tool_uploadusercli_user {
                     new lang_string('usernotupdatedadmin',  'tool_uploadusercli'));
                 return false;
             } else if ($this->existing->username === 'guest') {
-                $this->error('guestnoeditprofileother', new lang_string('guestnoeditprofileother',
-                    'error'));
+                $this->error('guestnoeditprofileother',
+                        new lang_string('guestnoeditprofileother', 'error'));
                 return false;
             }
         }
@@ -496,6 +503,7 @@ class tool_uploadusercli_user {
                 $this->set_status('userrenamed',
                     new lang_string('userrenamed', 'tool_uploadusercli',
                     array('from' => $original, 'to' => $this->name)));
+                $this->finaldata['username'] = $this->username;
                 /*
                 if (isset($finaldata['id'])) {
                     $originalidn = $finaldata['id'];
@@ -504,10 +512,12 @@ class tool_uploadusercli_user {
                  */
             }
 
-            tool_uploadusercli_debug::show("Username incremented.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Username incremented.", UUC_DEBUG_LOW,
+                                                    $this->debuglevel, "USER");
         }  
 
-        tool_uploadusercli_debug::show("Last sanity checks...", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Last sanity checks...", UUC_DEBUG_LOW,
+                                                    $this->debuglevel, "USER");
 
         // Ultimate check mode vs. existence.
         switch ($this->mode) {
@@ -528,8 +538,8 @@ class tool_uploadusercli_user {
                 break;
             case tool_uploadusercli_processor::MODE_UPDATE_ONLY:
                 if (!$this->existing) {
-                    $this->error('usernotexistcreatenotallowed',
-                        new lang_string('usernotexistcreatenotallowed', 'tool_uploadusercli'));
+                    $this->error('usernotexistcannotcreate',
+                        new lang_string('usernotexistcannotcreate', 'tool_uploadusercli'));
                     return false;
                 }
                 break;
@@ -544,41 +554,41 @@ class tool_uploadusercli_user {
                 break;
             default:
                 // O_o Huh?! This should really never happen here!
-                $this->error('unknownimportmode', new lang_string('unknownimportmode', 
-                    'tool_uploadusercli'));
+                $this->error('unknownimportmode', 
+                    new lang_string('unknownimportmode', 'tool_uploadusercli'));
                 return false;
         }
 
         // Get final data.
         if ($this->existing) {
 
-            tool_uploadusercli_debug::show("Getting final update data.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Getting final update data.", 
+                                    UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
             $missingonly = ($updatemode === tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
-            $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
-
+            $finaldata = $this->get_final_update_data($finaldata, $this->existing,
+                                               $this->defaults, $missingonly);
             if (!$finaldata) {
-                $this->error('usernotupdatederror', new lang_string('usernotupdatederror', 'error'));
+                $this->error('usernotupdatederror', 
+                            new lang_string('usernotupdatederror', 'error'));
                 return false;
             } else {
-
-                tool_uploadusercli_debug::show("Finaldata:", UUC_DEBUG_VERBOSE, $this->debuglevel,
-                                                "USER", "prepare", $finaldata);
-
+                tool_uploadusercli_debug::show("Finaldata:", UUC_DEBUG_VERBOSE,
+                            $this->debuglevel, "USER", "prepare", $finaldata);
                 $this->do = self::DO_UPDATE;
             }
         } 
         else {
             $finaldata = $this->get_final_create_data($finaldata);
             if (!$finaldata) {
-                //tool_uploadusercli_debug::show("Entering get_final_create_data.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
-                $this->error('usernotaddederror', new lang_string('usernotaddederror',
-                    'error'));
+                $this->error('usernotaddederror',
+                    new lang_string('usernotaddederror', 'error'));
                 return false;
             } else {
-                tool_uploadusercli_debug::show("Creation queued.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
-                tool_uploadusercli_debug::show("Finaldata:", UUC_DEBUG_VERBOSE, $this->debuglevel, 
-                    "USER", "prepare", $finaldata);
+                tool_uploadusercli_debug::show("Creation queued.", UUC_DEBUG_LOW,
+                                                    $this->debuglevel, "USER");
+                tool_uploadusercli_debug::show("Finaldata:", UUC_DEBUG_VERBOSE,
+                            $this->debuglevel, "USER", "prepare", $finaldata);
                 $this->do = self::DO_CREATE;
             }
         }
@@ -596,7 +606,8 @@ class tool_uploadusercli_user {
      */
     public function proceed() {
 
-        tool_uploadusercli_debug::show("Entering proceed.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Entering proceed.", UUC_DEBUG_LOW,
+                                                    $this->debuglevel, "USER");
 
         if (!$this->prepared) {
             throw new coding_exception('The course has not been prepared.');
@@ -609,7 +620,8 @@ class tool_uploadusercli_user {
 
         if ($this->do === self::DO_DELETE) {
 
-            tool_uploadusercli_debug::show("Deleting.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Deleting.", UUC_DEBUG_LOW,
+                                                    $this->debuglevel, "USER");
 
             $this->finaldata = $this->existing;
             $this->id = $this->existing->id;
@@ -622,8 +634,8 @@ class tool_uploadusercli_user {
                 $this->set_status('userdeleted', 
                     new lang_string('userdeleted', 'tool_uploaduser'));
             } else {
-                $this->error('usernotdeletederror', new lang_string('usernotdeletederror',
-                    'error'));
+                $this->error('usernotdeletederror',
+                    new lang_string('usernotdeletederror', 'error'));
             }
             return true;
         } else if ($this->do === self::DO_CREATE) {
@@ -641,7 +653,8 @@ class tool_uploadusercli_user {
 
             if ($this->needpasswordchange) {
                 set_user_preference('auth_forcepasswordchange', 1, $this->finaldata);
-                $this->set_status('forcepasswordchange', new lang_string('forcepasswordchange'));
+                $this->set_status('forcepasswordchange', 
+                                        new lang_string('forcepasswordchange'));
             }
             if ($this->finaldata->password === 'to be generated') {
                 set_user_preference('create_password', 1, $this->finaldata);
@@ -673,7 +686,8 @@ class tool_uploadusercli_user {
 
             // DO SCRIPTS FOR BULK
             
-            $this->set_status('useraccountupdated', new lang_string('useraccountupdated', 'tool_uploaduser'));
+            $this->set_status('useraccountupdated', 
+                    new lang_string('useraccountupdated', 'tool_uploaduser'));
         }
 
         if ($this->do === self::DO_UPDATE || $this->do === self::DO_CREATE) {
@@ -740,23 +754,25 @@ class tool_uploadusercli_user {
                 if ($field === 'email') {
                     if ($DB->record_exists('user', array('email' => $data->email))) {
                         if ($this->importoptions['noemailduplicates']) {
-                            $this->error('useremailduplicate', new lang_string('useremailduplicate',
-                                'error'));
+                            $this->error('useremailduplicate',
+                                new lang_string('useremailduplicate', 'error'));
                             return false;
                         } else {
-                            $this->set_status('useremailduplicate', new lang_string('useremailduplicate',
-                                'error'));
+                            $this->set_status('useremailduplicate', 
+                                new lang_string('useremailduplicate', 'error'));
                         }
                     }
                     if (!validate_email($data->email)) {
-                        $this->set_status('invalidemail', new lang_string('invalidemail', 'warning'));
+                        $this->set_status('invalidemail', 
+                                    new lang_string('invalidemail', 'warning'));
                     }
                 } else if ($field === 'lang') {
                     if (empty($data->lang)) {
                         // Don't change language if not already set.
                         continue;
                     } else if (clean_param($data->lang, PARAM_LANG) === '') {
-                        $this->set_status('cannotfindlang', new lang_string('cannotfindlang', 'error'));
+                        $this->set_status('cannotfindlang',
+                                    new lang_string('cannotfindlang', 'error'));
                         continue;
                     }
                 }
@@ -776,7 +792,8 @@ class tool_uploadusercli_user {
         }
 
         $isinternalauth = $auth->is_internal();
-        if ($this->importoptions['allowsuspends'] && isset($data->suspended) && $data->suspended !== '') {
+        if ($this->importoptions['allowsuspends'] && isset($data->suspended) && 
+                                                    $data->suspended !== '') {
             $data->suspended = $data->suspended ? 1 : 0;
             if ($existingdata->suspended != $data->suspended) {
                 $existingdata->suspended = $data->suspended;
@@ -785,7 +802,8 @@ class tool_uploadusercli_user {
                     $this->dologout = true;
                 }
                 if ($existingdata->suspended) {
-                    $this->set_status('usersuspended', new lang_string('usersuspended', 'tool_uploadusercli'));
+                    $this->set_status('usersuspended',
+                        new lang_string('usersuspended', 'tool_uploadusercli'));
                 }
             }
         }
@@ -824,7 +842,8 @@ class tool_uploadusercli_user {
     protected function get_final_create_data($data) {
         global $CFG, $DB;
 
-        tool_uploadusercli_debug::show("Entering get_final_create_data.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+        tool_uploadusercli_debug::show("Entering get_final_create_data.", 
+                                    UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
         $data->confirmed = 1;
         $data->timemodified = time();
@@ -844,35 +863,35 @@ class tool_uploadusercli_user {
         try {
             $auth = get_auth_plugin($data->auth);
         } catch (Exception $e) {
-            $this->error('exceptiongettingauthplugin', new lang_string('exceptiongettingauthplugin',
-                        'error'));
+            $this->error('exceptiongettingauthplugin', 
+                        new lang_string('exceptiongettingauthplugin', 'error'));
             return false;
         }
         if (!isset($this->supportedauths[$data->auth])) {
-            $this->set_status('userauthunsupported', new lang_string(
-                        'userauthunsupported', 'error'));
+            $this->set_status('userauthunsupported', 
+                            new lang_string('userauthunsupported', 'error'));
         }
 
         if ($DB->record_exists('user', array('email' => $data->email))) {
             if ($this->importoptions['noemailduplicates']) {
-                $this->error('useremailduplicate', new lang_string('useremailduplicate',
-                        'error'));
+                $this->error('useremailduplicate', 
+                                new lang_string('useremailduplicate', 'error'));
                 return false;
             } else {
-                $this->set_status('useremailduplicate', new lang_string('useremailduplicate',
-                        'error'));
+                $this->set_status('useremailduplicate',
+                                new lang_string('useremailduplicate', 'error'));
             }
         }
         if (!validate_email($data->email)) {
-            $this->set_status('invalidemail', new lang_string('invalidemail',
-                    'warning'));
+            $this->set_status('invalidemail', 
+                                    new lang_string('invalidemail', 'warning'));
         }
 
         if (empty($data->lang)) {
             $data->lang ='';
         } else if (clean_param($data->lang, PARAM_LANG) === '') {
-            $this->set_status('cannotfindlang', new lang_string('cannotfindlang',
-                'error'));
+            $this->set_status('cannotfindlang', 
+                                    new lang_string('cannotfindlang', 'error'));
             $data->lang='';
         }
 
@@ -881,14 +900,15 @@ class tool_uploadusercli_user {
 
         if ($isinternalauth) {
 
-            tool_uploadusercli_debug::show("Checking password.", UUC_DEBUG_LOW, $this->debuglevel, "USER");
+            tool_uploadusercli_debug::show("Checking password.", UUC_DEBUG_LOW,
+                                                    $this->debuglevel, "USER");
 
             if (empty($data->password)) {
                 if ($this->importoptions['passwordmode'] === tool_uploadusercli_processor::PASSWORD_MODE_GENERATE) {
                     $data->password = 'to be generated';
                 } else {
-                    $this->error('missingfield', new lang_string('missingfield',
-                        'error', 'password'));
+                    $this->error('missingfield', 
+                        new lang_string('missingfield', 'error', 'password'));
                     return false;
                 }
             } else {
@@ -921,7 +941,7 @@ class tool_uploadusercli_user {
         $cohorts = array();
 
         tool_uploadusercli_debug::show("Entering add_to_cohort", UUC_DEBUG_LOW,
-                                        $this->debuglevel, 'USER');
+                                                    $this->debuglevel, 'USER');
 
         // Cohort is not a standard or profile field, it is not saved in the 
         // finaldata.
@@ -945,8 +965,7 @@ class tool_uploadusercli_user {
                             ));
                         } catch (Exception $e) {
                             $this->set_status($e->getMessage(), new lang_string (
-                                $e->getMessage(), 'tool_uploadusercli'
-                            ));
+                                    $e->getMessage(), 'tool_uploadusercli'));
                             return;
                         }
 
@@ -968,25 +987,22 @@ class tool_uploadusercli_user {
 
             if (is_object($cohorts[$addcohort])) {
                 $cohort = $cohorts[$addcohort];
-                if (!$DB->record_exists('cohort_members', array('cohortid' => $cohort->id, 'userid' => $this->id))) {
+                if (!$DB->record_exists('cohort_members', 
+                        array('cohortid' => $cohort->id, 'userid' => $this->id))) {
                     try {
                         cohort_add_member($cohort->id, $this->finaldata->id);
                     } catch (Exception $e) {
                         $this->set_status($e->getMessage(), new lang_string(
-                            $e->getMessage(), 'tool_uploadusercli'
-                        ));
+                                    $e->getMessage(), 'tool_uploadusercli'));
                         return;
                     }
                     $this->set_status('cohortcreateduseradded', new lang_string(
-                        'cohortcreateduseradded', 'tool_uploadusercli'
-                    ));
+                            'cohortcreateduseradded', 'tool_uploadusercli'));
                 } else {
                     $this->set_status('erroraddingtocohort', new lang_string(
-                        'erroraddingtocohort', 'tool_uploadusercli'
-                    ));
+                                'erroraddingtocohort', 'tool_uploadusercli'));
                 }
             }
         }
     }
-
 }

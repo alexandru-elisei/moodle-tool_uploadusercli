@@ -46,7 +46,8 @@ class tool_uploadusercli_tracker {
     /**
      * @var array columns to display.
      */
-    protected $columns = array('line', 'result', 'username', 'firstname', 'lastname',  'email', 'id', 'status');
+    protected $columns = array('line', 'result', 'username', 'firstname', 
+                                'lastname',  'email', 'id', 'status');
 
     /**
      * @var int row number.
