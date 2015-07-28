@@ -99,9 +99,6 @@ class tool_uploadusercli_user {
     /** @var array supported auth plugins that enabled. */
     protected $supportedauths = array();
 
-    /** @var string username. */
-    protected $username;
-
     /** @var array fields required on user creation. */
     static protected $mandatoryfields = array('username', 'firstname', 
                                               'lastname', 'email');
@@ -138,7 +135,7 @@ class tool_uploadusercli_user {
 
         if (!empty($rawdata['username'])) {
             // Stripping whitespaces.
-            $this->username = trim($rawdata['username']);
+            $this->rawdata['username'] = trim($rawdata['username']);
         }
         if (empty($rawdata['mnethostid'])) {
             $this->mnethostid = $CFG->mnet_localhost_id;
@@ -305,7 +302,7 @@ class tool_uploadusercli_user {
         global $DB;
 
         if (is_null($username)) {
-            $username = $this->username;
+            $username = $this->rawdata['username'];
         }
         if (is_null($mnethostid)) {
             $mnethostid = $this->mnethostid;
@@ -324,19 +321,21 @@ class tool_uploadusercli_user {
         global $DB, $CFG;
 
         tool_uploadusercli_debug::show("Entered prepare.", UUC_DEBUG_LOW, 
-                                                    $this->debuglevel, "USER");
+                                        $this->debuglevel, "USER");
 
         $this->prepared = true;
         
         // Standardise username.
         if ($this->importoptions['standardise']) {
-            $this->username = clean_param($this->username, PARAM_USERNAME);
+            $this->rawdata['username'] = clean_param($this->rawdata['username'],
+                                                    PARAM_USERNAME);
         }
 
         // Validate username format
-        if ($this->username !== clean_param($this->username, PARAM_USERNAME)) {
+        if ($this->rawdata['username'] !== clean_param($this->rawdata['username'],
+                                                        PARAM_USERNAME)) {
             $this->error('invalidusername', 
-                                new lang_string('invalidusername', 'error'));
+                         new lang_string('invalidusername', 'error'));
             return false;
         }
 
@@ -369,7 +368,7 @@ class tool_uploadusercli_user {
                 $this->error('usernotdeletedadmin', 
                             new lang_string('usernotdeletedadmin', 'error'));
                 return false;
-            } else if ($this->username === 'guest') {
+            } else if ($this->rawdata['username'] === 'guest') {
                 $this->error('guestnoeditprofileother', 
                         new lang_string('guestnoeditprofileother', 'error'));
                 return false;
@@ -427,7 +426,6 @@ class tool_uploadusercli_user {
         foreach ($this->rawdata as $field => $value) {
             $finaldata->$field = trim($value);
         }
-        $finaldata->username = $this->username;
         $finaldata->mnethostid = $this->mnethostid;
 
         // Can the user be renamed?
@@ -438,7 +436,7 @@ class tool_uploadusercli_user {
                 return false;
             }
 
-            $oldusername = trim($finaldata->oldusername);
+            $oldusername = $finaldata->oldusername;
             if ($this->importoptions['standardise']) {
                 $oldusername = clean_param($oldusername, PARAM_USERNAME);
             }
@@ -482,30 +480,23 @@ class tool_uploadusercli_user {
 
         // If exists, but we only want to create users, increment the username.
         if ($this->existing && $this->mode === tool_uploadusercli_processor::MODE_CREATE_ALL) {
-            $original = $this->username;
-            $this->username = uu_increment_username($this->username);
-            $finaldata->username = $this->username;
+            $original = $finaldata->username;
+            $finaldata->username = uu_increment_username($finaldata->username);
             // We are creating a new user.
             $this->existing = null;
 
-            if ($this->username !== $original) {
+            if ($finaldata->username !== $original) {
                 $this->set_status('userrenamed',
-                    new lang_string('userrenamed', 'tool_uploadusercli',
-                    array('from' => $original, 'to' => $this->name)));
-                /*
-                if (isset($finaldata['id'])) {
-                    $originalidn = $finaldata['id'];
-                    $finaldata['idnumber'] = uu_increment_idnumber($finaldata['idnumber']);
-                }
-                 */
+                            new lang_string('userrenamed', 'tool_uploadusercli',
+                            array('from' => $original, 'to' => $this->name)));
             }
 
             tool_uploadusercli_debug::show("Username incremented.", UUC_DEBUG_LOW,
-                                                    $this->debuglevel, "USER");
+                                            $this->debuglevel, "USER");
         }  
 
         tool_uploadusercli_debug::show("Last sanity checks...", UUC_DEBUG_LOW,
-                                                    $this->debuglevel, "USER");
+                                        $this->debuglevel, "USER");
 
         // Ultimate check mode vs. existence.
         switch ($this->mode) {
@@ -582,7 +573,6 @@ class tool_uploadusercli_user {
         }
 
         // Saving data.
-        $finaldata->username = $this->username;
         $this->finaldata = $finaldata;
         return true;
     }
