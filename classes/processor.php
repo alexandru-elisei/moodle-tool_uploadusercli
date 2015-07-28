@@ -145,24 +145,6 @@ class tool_uploadusercli_processor {
 
     /** @var bool whether the process has been started or not. */
     protected $processstarted = false;
-
-    /** @var array of standard csv fields. */
-    protected $standardfields = array('id', 'username', 'email',
-        'city', 'country', 'lang', 'timezone', 'mailformat', 'firstname',
-        'maildisplay', 'maildigest', 'htmleditor', 'autosubscribe',
-        'institution', 'department', 'idnumber', 'skype', 'lastname',
-        'msn', 'aim', 'yahoo', 'icq', 'phone1', 'phone2', 'address',
-        'url', 'description', 'descriptionformat', 'password',
-        'auth',        
-        'oldusername', // use when renaming users - this is the original username
-        'suspended',   // 1 means suspend user account, 0 means activate user account, nothing means keep as is for existing users
-        'deleted',     // 1 means delete user
-        'mnethostid',  // Can not be used for adding, updating or deleting of users - only for enrolments, groups, cohorts and suspending.
-    );
-
-    /** @var array of profile fields. */
-    protected $profilefields = array();
-
     /**
      * Constructor
      *
@@ -170,7 +152,7 @@ class tool_uploadusercli_processor {
      * @param array $options options of the process
      */
     public function __construct(csv_import_reader $cir, array $options) {
-        global $DB;
+        global $DB, $UUC_STD_FIELDS, $UUC_PRF_FIELDS;
 
         // Extra sanity checks
         if (!isset($options['mode']) || !in_array($options['mode'], 
@@ -221,16 +203,15 @@ class tool_uploadusercli_processor {
                                                 $this->debuglevel, "PROCESSOR");
 
         // Get all the possible user name fields.
-        $this->standardfields = array_merge($this->standardfields,
-                                                 get_all_user_name_fields());
+        $UUC_STD_FIELDS = array_merge($UUC_STD_FIELDS, get_all_user_name_fields());
 
         // Get profilefields.
-        $profilefields = $DB->get_records('user_info_field');
-        if ($profilefields) {
-            foreach ($profilefields as $key => $field) {
+        $UUC_PRF_FIELDS = $DB->get_records('user_info_field');
+        if ($UUC_PRF_FIELDS) {
+            foreach ($UUC_PRF_FIELDS as $key => $field) {
                 $profilefieldname = 'profile_field_' . $field->shortname;
                 // Add new profile field.
-                $this->profilefields[] = $profilefieldname;
+                $UUC_PRF_FIELDS[] = $profilefieldname;
             /*
             $profilefields[$profilefieldname] = $field;
             unset($profilefields[$key]);
@@ -241,7 +222,7 @@ class tool_uploadusercli_processor {
         $this->cir = $cir;
         $phonyurl = new moodle_url('/admin/tool/uploaduser/index.php');
         $this->columns = uu_validate_user_upload_columns($this->cir, 
-                        $this->standardfields, $this->profilefields, $phonyurl);
+                                $UUC_STD_FIELDS, $UUC_PRF_FIELDS, $phonyurl);
         $this->reset();
 
         tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE,
@@ -328,6 +309,8 @@ class tool_uploadusercli_processor {
      * @return tool_uploadusercli_user
      */
     protected function get_user($data) {
+        global $UUC_STD_FIELDS, $UUC_PRF_FIELDS;
+
         $importoptions = array(
             'allowdeletes'          => $this->allowdeletes,
             'allowrenames'          => $this->allowrenames,
@@ -339,9 +322,8 @@ class tool_uploadusercli_processor {
             'forcepasswordchange'   => $this->forcepasswordchange,
             'debuglevel'            => $this->debuglevel,
         );
-
-        return new tool_uploadusercli_user($this->mode, $this->updatemode, $data,
-                    $importoptions, $this->standardfields, $this->profilefields);
+        return new tool_uploadusercli_user($this->mode, $this->updatemode,
+                                                        $data, $importoptions);
     }
 
     /**
@@ -352,17 +334,6 @@ class tool_uploadusercli_processor {
      */
     protected function parse_line($line) {
         $data = array();
-
-        /*
-        print "line:\n";
-        var_dump($line);
-        print "\n";
-
-        print "columns:\n";
-        var_dump($this->columns);
-        print "\n";
-         */
-
         foreach ($line as $keynum => $value) {
             $column = $this->columns[$keynum];
             $data[$column] = $value;

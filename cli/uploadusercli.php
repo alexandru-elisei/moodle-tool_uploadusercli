@@ -35,6 +35,23 @@ require_once($CFG->dirroot . '/cohort/lib.php');
 require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 require_once('../classes/debug.php');
 
+/** @var array of standard csv fields. */
+$UUC_STD_FIELDS = array('id', 'username', 'email',
+    'city', 'country', 'lang', 'timezone', 'mailformat', 'firstname',
+    'maildisplay', 'maildigest', 'htmleditor', 'autosubscribe',
+    'institution', 'department', 'idnumber', 'skype', 'lastname',
+    'msn', 'aim', 'yahoo', 'icq', 'phone1', 'phone2', 'address',
+    'url', 'description', 'descriptionformat', 'password',
+    'auth',        
+    'oldusername', // use when renaming users - this is the original username
+    'suspended',   // 1 means suspend user account, 0 means activate user account, nothing means keep as is for existing users
+    'deleted',     // 1 means delete user
+    'mnethostid',  // Can not be used for adding, updating or deleting of users - only for enrolments, groups, cohorts and suspending.
+);
+
+/** @var array of profile fields. */
+$UUC_PRF_FIELDS = array();
+
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(
     'help' => false,

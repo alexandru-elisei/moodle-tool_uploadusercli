@@ -102,12 +102,6 @@ class tool_uploadusercli_user {
     /** @var string username. */
     protected $username;
 
-    /** @var array CSV standard fields. */
-    protected $standardfields = array();
-
-    /** @var array CSV profile fields. */
-    protected $profilefields = array();
-
     /** @var array fields required on user creation. */
     static protected $mandatoryfields = array('username', 'firstname', 
                                               'lastname', 'email');
@@ -124,8 +118,7 @@ class tool_uploadusercli_user {
      * @param array $rawdata raw user data.
      * @param array $importoptions import options.
      */
-    public function __construct($mode, $updatemode, $rawdata, $importoptions = array(),
-                                $standardfields, $profilefields) {
+    public function __construct($mode, $updatemode, $rawdata, $importoptions = array()) {
         global $CFG;
 
         if ($mode !== tool_uploadusercli_processor::MODE_CREATE_NEW &&
@@ -170,12 +163,6 @@ class tool_uploadusercli_user {
 
         // Supported authentification plugins.
         $this->supportedauths = uu_supported_auths();
-
-        // CSV standard fields.
-        $this->standardfields = $standardfields;
-
-        // CSV profile fields.
-        $this->profilefields = $profilefields;
 
         tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE, 
                             $this->debuglevel, "USER", "__construct", $this);
@@ -416,7 +403,8 @@ class tool_uploadusercli_user {
 
         // Can we create/update the user under those conditions?
         if ($this->existing) {
-            if (!$this->can_update()) {
+            if (!$this->can_update() &&
+            $this->mode != tool_uploadusercli_processor::MODE_CREATE_ALL) {
                 $this->error('userexistsupdatenotallowed',
                     new lang_string('userexistsupdatenotallowed', 'error'));
                 return false;
@@ -437,7 +425,7 @@ class tool_uploadusercli_user {
         // Preparing final user data.
         $finaldata = new stdClass();
         foreach ($this->rawdata as $field => $value) {
-            $finaldata->$field = $value;
+            $finaldata->$field = trim($value);
         }
         $finaldata->username = $this->username;
         $finaldata->mnethostid = $this->mnethostid;
@@ -496,6 +484,7 @@ class tool_uploadusercli_user {
         if ($this->existing && $this->mode === tool_uploadusercli_processor::MODE_CREATE_ALL) {
             $original = $this->username;
             $this->username = uu_increment_username($this->username);
+            $finaldata->username = $this->username;
             // We are creating a new user.
             $this->existing = null;
 
@@ -503,7 +492,6 @@ class tool_uploadusercli_user {
                 $this->set_status('userrenamed',
                     new lang_string('userrenamed', 'tool_uploadusercli',
                     array('from' => $original, 'to' => $this->name)));
-                $this->finaldata['username'] = $this->username;
                 /*
                 if (isset($finaldata['id'])) {
                     $originalidn = $finaldata['id'];
@@ -707,7 +695,7 @@ class tool_uploadusercli_user {
      * @return array
      */
     protected function get_final_update_data($data, $existingdata, $usedefaults = false, $missingonly = false) {
-        global $DB;
+        global $DB, $UUC_STD_FIELDS, $UUC_PRF_FIELDS;
         $doupdate = false;
 
         $existingdata->timemodified = time();
@@ -723,7 +711,7 @@ class tool_uploadusercli_user {
             }
         }
 
-        $allfields = array_merge($this->standardfields, $this->profilefields);
+        $allfields = array_merge($UUC_STD_FIELDS, $UUC_PRF_FIELDS);
         foreach ($allfields as $field) {
             // These fields are being processed separatedly.
             if ($field === 'username' || $field === 'password' ||
