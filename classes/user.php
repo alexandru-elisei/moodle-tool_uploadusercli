@@ -593,7 +593,7 @@ class tool_uploadusercli_user {
         if ($this->do === self::DO_DELETE) {
 
             tool_uploadusercli_debug::show("Deleting.", UUC_DEBUG_LOW,
-                                                    $this->debuglevel, "USER");
+                                            $this->debuglevel, "USER");
 
             $this->finaldata = $this->existing;
             try {
@@ -624,7 +624,7 @@ class tool_uploadusercli_user {
             if ($this->needpasswordchange) {
                 set_user_preference('auth_forcepasswordchange', 1, $this->finaldata);
                 $this->set_status('forcepasswordchange', 
-                                        new lang_string('forcepasswordchange'));
+                                    new lang_string('forcepasswordchange'));
             }
             if ($this->finaldata->password === 'to be generated') {
                 set_user_preference('create_password', 1, $this->finaldata);
@@ -661,6 +661,7 @@ class tool_uploadusercli_user {
 
         if ($this->do === self::DO_UPDATE || $this->do === self::DO_CREATE) {
             $this->add_to_cohort();
+            $this->add_to_egr();
         }
     }
 
@@ -981,4 +982,54 @@ class tool_uploadusercli_user {
             }
         }
     }
+
+    /**
+     * Enrol the user, add him to groups and assign him roles.
+     *
+     * @return void
+     */
+    protected function add_to_egr() {
+        //global $DB;
+        
+        foreach ($this->rawdata as $field => $value) {
+            if (preg_match('/^sysrole\d+$/', $field)) {
+                $removing = false;
+                if (!empty($value)) {
+                    $sysrolename = $value;
+                    // Removing sysrole.
+                    if ($sysrolename[0] == '-') {
+                        $removing = true;
+                        $sysrolename = substr($sysrolename, 1);
+                    }
+
+                    // System roles lookup.
+                    $sysrolecache = uu_allowed_sysroles_cache();
+                    if (array_key_exists($sysrolename, $sysrolecache)) {
+                        $sysroleid = $sysrolecache[$sysrolename]->id;
+                    } else {
+                        $this->set_status('unknownrole',
+                            new lang_string('unknownrole', 'error', s($sysrolename)));
+                        continue;
+                    }
+
+                    $isassigned = user_has_role_assignment($this->finaldata->id,
+                                                    $sysroleid, SYSCONTEXTID);
+                    if ($removing) {
+                        if ($isassigned) {
+                            role_unassign($sysroleid, $this->finaldata->id,
+                                            SYSCONTEXTID);
+                        }
+                    } else {
+                        if (!$isassigned) {
+                            role_assign($sysroleid, $this->finaldata->id,
+                                        SYSCONTEXTID);
+                        }
+                    }
+                }
+            } else if (preg_match('/^course\d+$/', $column)) {
+                print "Got course match!\n";
+            }
+        }
+    }
+
 }

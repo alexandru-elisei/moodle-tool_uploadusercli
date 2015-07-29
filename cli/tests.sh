@@ -552,6 +552,43 @@ php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 make_pristine
 
 
+# Creating (success - sysrole added)
+((no++))
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+create_text "${no}. Creating" "success - sysrole added"\
+	"username,firstname,lastname,email,sysrole1" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,manager"
+php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+
+# Creating (warning - invalid sysrole)
+((no++))
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+create_text "${no}. Creating" "warning - unknown sysrole"\
+	"username,firstname,lastname,email,sysrole1" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,phony"
+php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+
+
 # Cleaning the environment
 unset output_file
 unset options
