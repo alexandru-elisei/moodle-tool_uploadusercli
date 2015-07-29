@@ -26,6 +26,7 @@ define('CLI_SCRIPT', true);
 
 require(__DIR__ . '/../../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
+require_once($CFG->libdir . '/enrollib.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->dirroot . '/user/profile/lib.php');

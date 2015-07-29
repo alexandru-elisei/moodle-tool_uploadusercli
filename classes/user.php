@@ -989,8 +989,11 @@ class tool_uploadusercli_user {
      * @return void
      */
     protected function add_to_egr() {
-        //global $DB;
+        global $DB;
         
+        tool_uploadusercli_debug::show("Entering add_to_egr", UUC_DEBUG_LOW,
+                                        $this->debuglevel, "USER");
+
         foreach ($this->rawdata as $field => $value) {
             if (preg_match('/^sysrole\d+$/', $field)) {
                 $removing = false;
@@ -1026,8 +1029,121 @@ class tool_uploadusercli_user {
                         }
                     }
                 }
-            } else if (preg_match('/^course\d+$/', $column)) {
-                print "Got course match!\n";
+            } else if (preg_match('/^course\d+$/', $field)) {
+                // Course number.
+                $i = substr($field, 6);
+                $shortname = $value;
+
+                $course = $DB->get_record('course', array('shortname' => $shortname));
+                if (!$course) {
+                    $this->set_status('unknowncourse',
+                        new lang_string('unknowncourse', 'error', s($shortname)));
+                    continue;
+                }
+                $courseid = $course->id;
+                $coursecontext = context_course::instance($courseid);
+
+                $roles = uu_allowed_roles_cache();
+
+                /*
+                 * DE MUTAT LA MANUALCACHE!!!!!!
+                 */
+
+                if ($instances = enrol_get_instances($courseid, false)) {
+                    foreach ($instances as $instance) {
+                        if ($instance->enrol === 'manual') {
+                            $coursecache = $instance;
+                            break;
+                        }
+                    }
+                }
+
+                // Checking if manual enrol is enabled. If it's not, no 
+                // enrolment is done.
+                if (enrol_is_enabled('manual')) {
+                    $manual = enrol_get_plugin('manual');
+                } else {
+                    $manual = null;
+                }
+
+                if ($courseid == SITEID) {
+                    if (!empty($this->rawdata['role' . $i])) {
+                        $rolename = $this->rawdata['role' . $i];
+                        if (array_key_exists($rolename, $roles)) {
+                            $roleid = $roles[$rolename]->id;
+                        } else {
+                            $this->set_status('unknownrole',
+                                new lang_string('unknownrole', 'error', s($rolename)));
+                            continue;
+                        }
+
+                        role_assign($roleid, $this->finaldata->id,
+                                    context_course::instance($courseid));
+                    }
+                } else if ($manual) {
+                    $roleid = false;
+                    if (!empty($this->rawdata['role' . $i])) {
+                        $rolename = $this->rawdata['role' . $i];
+                        if (array_key_exists($rolename, $roles)) {
+                            $roleid = $roles[$rolename]->id;
+                        } else {
+                            $this->set_status('unknownrole',
+                                new lang_string('unknownrole', 'error', s($rolename)));
+                            continue;
+                        }
+                    } else if (!empty($this->rawdata['type' . $i])) {
+                        // If no role, find "old" enrolment type.
+                        $addtype = $this->rawdata['type' . $i];
+                        if ($addtype < 1 or $addtype > 3) {
+                            $this->set_status('typeerror',
+                                new lang_string('typeerror', 'error'));
+                            continue;
+                        } else {
+                            $roleid = $this->rawdata['type' . $i];
+                        }
+                    } else {
+                        // No role specified, use default course role.
+                        $roleid = $coursecache->roleid;
+                    }
+
+                    if ($roleid) {
+                        // Find duration and/or enrol status.
+                        $timeend = 0;
+                        $status = NULL;
+
+                        if (isset($this->rawdata['enrolstatus' . $i])) {
+                            $enrolstatus = $this->rawdata['enrolstatus' . $i];
+                            if ($enrolstatus == '') {
+                                // Do nothing
+                            } else if ($enrolstatus === (string)ENROL_USER_ACTIVE) {
+                                $status = ENROL_USER_ACTIVE;
+                            } else if ($enrolstatus === (string)ENROL_USER_SUSPENDED) {
+                                $status = ENROL_USER_SUSPENDED;
+                            } else {
+                                $this->set_status('unknownenrolstatus',
+                                    new lang_string('unknownenrolstatus', 'error'));
+                            }
+                        }
+
+                        if ($this->do === self::DO_UPDATE) {
+                            $now = $this->finaldata->timemodified;
+                        } else {
+                            $now = $this->finaldata->timecreated;
+                        }
+                        if (!empty($this->rawdata['enrolperiod' . $i])) {
+                            // Duration, in seconds.
+                            $duration = (int)$this->rawdata['enrolperiod' . $i] * 60*60*24;
+                            if ($duration > 0) {
+                                $timeend = $now + $duration;
+                            }
+                        } else if ($coursecache->enrolperiod > 0) {
+                            $timeend = $now + $coursecache->enrolperiod;
+                        }
+
+                        $manual->enrol_user($coursecache, $this->finaldata->id,
+                                            $roleid, $now, $timeend, $status);
+                    }
+                }
             }
         }
     }
