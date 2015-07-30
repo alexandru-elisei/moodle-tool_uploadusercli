@@ -597,17 +597,19 @@ class tool_uploadusercli_user {
 
             $this->finaldata = $this->existing;
             try {
-                $deletesuccess = delete_user($this->existing);
+                $success = delete_user($this->existing);
             } catch (moodle_exception $e) {
-                $deletesuccess = false;
+                $success = false;
             }
-            if ($deletesuccess) {
-                $this->set_status('userdeleted', 
-                    new lang_string('userdeleted', 'tool_uploaduser'));
-            } else {
+
+            if (!$success) {
                 $this->error('usernotdeletederror',
                     new lang_string('usernotdeletederror', 'error'));
+                return false;
             }
+
+            $this->set_status('userdeleted', 
+                new lang_string('userdeleted', 'tool_uploaduser'));
             return true;
         } else if ($this->do === self::DO_CREATE) {
             try {
@@ -853,6 +855,7 @@ class tool_uploadusercli_user {
             $this->set_status('userauthunsupported', 
                             new lang_string('userauthunsupported', 'error'));
         }
+        $isinternalauth = $auth->is_internal();
 
         if ($DB->record_exists('user', array('email' => $data->email))) {
             if ($this->importoptions['noemailduplicates']) {
@@ -877,7 +880,6 @@ class tool_uploadusercli_user {
             $data->lang='';
         }
 
-        $isinternalauth = $auth->is_internal();
         $this->needpasswordchange = false;
 
         if ($isinternalauth) {
@@ -1159,15 +1161,10 @@ class tool_uploadusercli_user {
                     }
                 }
 
-                print "Adding to group\n";
-
                 // Add to group.
                 $groupname = $this->rawdata['group' . $i];
 
                 if (!empty($groupname)) {
-
-                    print "Entering groups\n";
-
                     // Enrol into course before adding to group.
                     if (!is_enrolled($coursecontext, $this->finaldata->id)) {
                         $this->error('addtogroupnotenrolled',
