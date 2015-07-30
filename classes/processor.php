@@ -270,26 +270,35 @@ class tool_uploadusercli_processor {
             $data = $this->parse_line($line);
             $user = $this->get_user($data);
             if ($user->prepare()) {
-                $user->proceed();
+                if ($user->proceed()) {
 
-                tool_uploadusercli_debug::show("User prepared.", UUC_DEBUG_LOW,
-                                                $this->debuglevel, "PROCESSOR");
+                    tool_uploadusercli_debug::show("User proceed success.", 
+                                UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
 
-                $status = $user->get_statuses();
-                if (array_key_exists('useradded', $status)) {
-                    $created++;
-                } else if (array_key_exists('useraccountupdated', $status)) {
-                    $updated++;
-                } else if (array_key_exists('userdeleted', $status)) {
-                    $deleted++;
+                    $status = $user->get_statuses();
+                    if (array_key_exists('useradded', $status)) {
+                        $created++;
+                    } else if (array_key_exists('useraccountupdated', $status)) {
+                        $updated++;
+                    } else if (array_key_exists('userdeleted', $status)) {
+                        $deleted++;
+                    }
+
+                    tool_uploadusercli_debug::show("User proceeded.", UUC_DEBUG_VERBOSE,
+                        $this->debuglevel, "PROCESSOR", "execute", $status);
+
+                    $data = array_merge($data, $user->get_finaldata(), 
+                    array('id' => $user->get_id()));
+                    $tracker->output($this->linenum, true, $status, $data);
+                } else {
+
+                    tool_uploadusercli_debug::show("User proceed failed.",
+                                UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
+
+                    $errors++;
+                    $tracker->output($this->linenum, false,
+                                    $user->get_errors(), $data);
                 }
-                
-                tool_uploadusercli_debug::show("User prepared.", UUC_DEBUG_VERBOSE,
-                            $this->debuglevel, "PROCESSOR", "execute", $status);
-
-                $data = array_merge($data, $user->get_finaldata(), 
-                                                array('id' => $user->get_id()));
-                $tracker->output($this->linenum, true, $status, $data);
             } else {
 
                 tool_uploadusercli_debug::show("User prepare failed.",

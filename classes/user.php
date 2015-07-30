@@ -660,9 +660,14 @@ class tool_uploadusercli_user {
         }
 
         if ($this->do === self::DO_UPDATE || $this->do === self::DO_CREATE) {
-            $this->add_to_cohort();
-            $this->add_to_egr();
+            $success = $this->add_to_cohort();
+            $success = ($success && $this->add_to_egr());
+            if (!$success) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     /**
@@ -941,9 +946,9 @@ class tool_uploadusercli_user {
                                 'contextid' => context_system::instance() ->id,
                             ));
                         } catch (Exception $e) {
-                            $this->set_status($e->getMessage(), new lang_string (
-                                    $e->getMessage(), 'tool_uploadusercli'));
-                            return;
+                            $this->error($e->errorcode, new lang_string (
+                                    $e->errorcode, 'tool_uploadusercli'));
+                            return false;
                         }
 
                         $cohort = $DB->get_record('cohort', array('id' => $cohortid));
@@ -969,9 +974,9 @@ class tool_uploadusercli_user {
                     try {
                         cohort_add_member($cohort->id, $this->finaldata->id);
                     } catch (Exception $e) {
-                        $this->set_status($e->getMessage(), new lang_string(
+                        $this->error($e->getMessage(), new lang_string(
                                     $e->getMessage(), 'tool_uploadusercli'));
-                        return;
+                        return false;
                     }
                     $this->set_status('cohortcreateduseradded', new lang_string(
                             'cohortcreateduseradded', 'tool_uploadusercli'));
@@ -981,12 +986,14 @@ class tool_uploadusercli_user {
                 }
             }
         }
+
+        return true;
     }
 
     /**
      * Enrol the user, add him to groups and assign him roles.
      *
-     * @return void
+     * @return bool false if an error occured
      */
     protected function add_to_egr() {
         global $DB;
@@ -1035,6 +1042,7 @@ class tool_uploadusercli_user {
                 $shortname = $value;
 
                 $course = $DB->get_record('course', array('shortname' => $shortname));
+                $course->groups = NULL;
                 if (!$course) {
                     $this->set_status('unknowncourse',
                         new lang_string('unknowncourse', 'error', s($shortname)));
@@ -1140,12 +1148,82 @@ class tool_uploadusercli_user {
                             $timeend = $now + $coursecache->enrolperiod;
                         }
 
-                        $manual->enrol_user($coursecache, $this->finaldata->id,
-                                            $roleid, $now, $timeend, $status);
+                        try {
+                            $manual->enrol_user($coursecache, $this->finaldata->id,
+                                                $roleid, $now, $timeend, $status);
+                        } catch (Exception $e) {
+                            $this->error('errorenrolling',
+                                new lang_string('errorenrolling', 'error'));
+                            return false;
+                        }
+                    }
+                }
+
+                print "Adding to group\n";
+
+                // Add to group.
+                $groupname = $this->rawdata['group' . $i];
+
+                if (!empty($groupname)) {
+
+                    print "Entering groups\n";
+
+                    // Enrol into course before adding to group.
+                    if (!is_enrolled($coursecontext, $this->finaldata->id)) {
+                        $this->error('addtogroupnotenrolled',
+                            new lang_string('addtogroupnotenrolled', '',
+                                            $groupname, 'error'));
+                        return false;
+                    }
+                    $course->groups = array();
+                    $groups = groups_get_all_groups($courseid);
+                    if ($groups) {
+                        foreach ($groups as $gid => $group) {
+                            $course->groups[$gid] = new stdClass();
+                            $course->groups[$gid]->id = $gid;
+                            $course->groups[$gid]->name = $group->name;
+                            if (!is_numeric($group->name)) {
+                                $course->groups[$group->name] = new stdClass();
+                                $course->groups[$group->name]->id = $gid;
+                                $course->groups[$group->name]->name = $group->name;
+                            }
+                        }
+                    }
+
+                    // Does the group exist?
+                    if (!array_key_exists($groupname, $course->groups)) {
+                        // Create it.
+                        $newgroupdata = new stdClass();
+                        $newgroupdata->name = $groupname;
+                        $newgroupdata->courseid = $course->id;
+                        $newgroupdata->description = '';
+                        $gid = groups_create_group($newgroupdata);
+                        if ($gid) {
+                            $course->groups[$groupname] = new stdClass();
+                            $course->groups[$groupname]->id = $gid;
+                            $course->groups[$groupname]->name = $newgroupname->name;
+                        } else {
+                            $this->error('unknowngroup',
+                                new lang_string('unknowngroup', 'error',
+                                s($groupname)));
+                            return false;
+                        }
+                    }
+
+                    $gid = $course->groups[$groupname]->id;
+                    $gname = $course->groups[$groupname]->name;
+                    try {
+                        groups_add_member($gid, $this->finaldata->id);
+                    } catch (moodle_exception $e) {
+                        $this-error('addedtogroupnot',
+                            new lang_string('addedtogroupnot', 'error'));
+                        return false;
                     }
                 }
             }
         }
+
+        return true;
     }
 
 }
