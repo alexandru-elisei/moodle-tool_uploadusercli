@@ -218,7 +218,7 @@ class tool_uploadusercli_processor {
      * @param object $tracker the output tracker to use.
      * @return void
      */
-    public function execute($tracker = null) {
+    public function execute($tracker = NULL) {
         global $DB;
 
         tool_uploadusercli_debug::show("Entered execute.", UUC_DEBUG_LOW,

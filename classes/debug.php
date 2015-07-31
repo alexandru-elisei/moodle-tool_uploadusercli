@@ -61,18 +61,18 @@ class tool_uploadusercli_debug {
      * @param var $var variable to dump.
      * @return void
      */
-    public function show($message, $requiredlevel, $currentlevel = null, $obj = null, $func = null, $var = null) {
+    public function show($message, $requiredlevel, $currentlevel = NULL, $obj = NULL, $func = NULL, $var = NULL) {
         if (is_null($currentlevel)) {
             if ($this->debuglevel == -1) {
                 print "DEBUG::Class not constructed!\n";
-                return null;
+                return NULL;
             } else {
                 $currentlevel = $this->debuglevel;
             }
         }
         if (empty($requiredlevel) || !is_number($requiredlevel)) {
             print "DEBUG::Specify a debug level!\n";
-            return null;
+            return NULL;
         }
 
         if ($currentlevel >= $requiredlevel) {

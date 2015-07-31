@@ -588,6 +588,24 @@ php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 make_pristine
 
 
+# Creating (failure - remote user)
+((no++))
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+create_text "${no}. Creating" "failure - remote user"\
+	"username,firstname,lastname,email,mnethostid" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,2"
+php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+
+create_silent "username,firstname,lastname,email,deleted" \
+       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+make_pristine
+
+
 
 # Cleaning the environment
 unset output_file

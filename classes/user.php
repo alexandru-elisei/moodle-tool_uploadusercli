@@ -43,7 +43,7 @@ class tool_uploadusercli_user {
     const DO_DELETE = 3;
 
     /** @var array final import data. */
-    protected $finaldata = null;
+    protected $finaldata = NULL;
 
     /** @var array user import data. */
     protected $rawdata = array();
@@ -76,7 +76,7 @@ class tool_uploadusercli_user {
     protected $do;
 
     /** @var array database record of an existing user. */
-    protected $existing = null;
+    protected $existing = NULL;
 
     /** @var bool set to true once we have prepared the user. */
     protected $prepared = false;
@@ -99,7 +99,7 @@ class tool_uploadusercli_user {
 
     /** @var array fields which are considered as options. */
     static protected $optionfields = array('deleted' => false, 'suspended' => false,
-                                    'visible' => true, 'oldusername' => null);
+                                    'visible' => true, 'oldusername' => NULL);
 
     /**
      * Constructor
@@ -145,7 +145,7 @@ class tool_uploadusercli_user {
 
         // Extract user options.
         foreach (self::$optionfields as $option => $default) {
-            $this->options[$option] = $rawdata[$option] ? $rawdata[$option] : null;
+            $this->options[$option] = $rawdata[$option] ? $rawdata[$option] : NULL;
         }
 
         // Copy import options.
@@ -244,14 +244,15 @@ class tool_uploadusercli_user {
     }
 
     /**
-     * Does the mode allow for user creation?
+     * Does the mode allow for creation? Remote users cannot be created.
      *
      * @return bool
      */
     protected function can_create() {
-        return in_array($this->mode, array(tool_uploadusercli_processor::MODE_CREATE_ALL,
+        return (in_array($this->mode, array(tool_uploadusercli_processor::MODE_CREATE_ALL,
             tool_uploadusercli_processor::MODE_CREATE_NEW,
-            tool_uploadusercli_processor::MODE_CREATE_OR_UPDATE));
+            tool_uploadusercli_processor::MODE_CREATE_OR_UPDATE)) &&
+            !$this->isremote);
     }
 
     /**
@@ -275,7 +276,7 @@ class tool_uploadusercli_user {
     /**
      * Return the ID of the processed user.
      *
-     * @return int|null
+     * @return int|NULL
      */
     public function get_id() {
         /*
@@ -287,13 +288,13 @@ class tool_uploadusercli_user {
     }
 
     /**
-     * Return the user database entry, or null.
+     * Return the user database entry, or NULL.
      *
      * @param string $username the username to use to check if the user exists.
      * @param int $mnethostid the moodle net host id.
      * @return bool
      */
-    protected function exists($username = null, $mnethostid = null) {
+    protected function exists($username = NULL, $mnethostid = NULL) {
         global $DB;
 
         if (is_null($username)) {
@@ -347,7 +348,7 @@ class tool_uploadusercli_user {
             return false;
         }
 
-        if ($this->rawdata['mnethostid'] !== $CFG->mnet_localhost_id) {
+        if ($this->rawdata['mnethostid'] != $CFG->mnet_localhost_id) {
             $this->isremote = true;
         } else {
             $this->isremote = false;
@@ -419,9 +420,9 @@ class tool_uploadusercli_user {
         } else {
             // If I cannot create the course, or I'm in update-only mode and I'm 
             // not renaming
-            if (!$this->can_create() && 
-                    $this->mode === tool_uploadusercli_processor::MODE_UPDATE_ONLY &&
-                    !isset($this->rawdata['oldusername'])) {
+            if (!$this->can_create() || 
+                    ($this->mode === tool_uploadusercli_processor::MODE_UPDATE_ONLY &&
+                    !isset($this->rawdata['oldusername']))) {
 
                 $this->error('usernotexistscreatenotallowed',
                     new lang_string('usernotexistscreatenotallowed', 'error'));
@@ -432,8 +433,21 @@ class tool_uploadusercli_user {
         // Preparing final user data.
         $finaldata = new stdClass();
         foreach ($this->rawdata as $field => $value) {
-            $finaldata->$field = trim($value);
+            if ($this->isremote) {
+                // Remote users can only be suspended or enrolled.
+                if ($field === 'suspended') {
+                    $finaldata->$field = trim($value);
+                } else if (in_array($field, $UUC_STD_FIELDS) ||
+                           in_array($field, $UUC_PRF_FIELDS)) {
+                    $finaldata->$field = $this->existing->$field;
+                } else {
+                    $finaldata->$field = trim($value);
+                }
+            } else {
+                $finaldata->$field = trim($value);
+            }
         }
+
         // Can the user be renamed?
         if (!empty($finaldata->oldusername)) {
             if ($this->existing) {
@@ -489,7 +503,7 @@ class tool_uploadusercli_user {
             $original = $finaldata->username;
             $finaldata->username = uu_increment_username($finaldata->username);
             // We are creating a new user.
-            $this->existing = null;
+            $this->existing = NULL;
 
             if ($finaldata->username !== $original) {
                 $this->set_status('userrenamed',
@@ -514,7 +528,7 @@ class tool_uploadusercli_user {
                 }
                 break;
             case tool_uploadusercli_processor::MODE_CREATE_ALL:
-                // This should not happen, we set existing to null when we increment. 
+                // This should not happen, we set existing to NULL when we increment. 
                 if ($this->existing) {
                     $this->error('usernotaddederror',
                         new lang_string('usernotaddederror', 'error'));
@@ -809,7 +823,7 @@ class tool_uploadusercli_user {
         } else if (!empty($data->password)) {
             if ($this->can_update() && 
                     $this->updatemode != tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS) {
-                $errmsg = null;
+                $errmsg = NULL;
                 $weak = !check_password_policy($data->password, $errmsg);
                 if ($this->importoptions['forcepassworchange'] === tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_ALL ||
                         ($this->reset_password() && $weak)) {
@@ -907,7 +921,7 @@ class tool_uploadusercli_user {
                     return false;
                 }
             } else {
-                $errmsg = null;
+                $errmsg = NULL;
                 $weak = !check_password_policy($data->password, $errmsg);
                 if ($this->importoptions['forcepasswordchange'] == tool_uploadusercli_processor::FORCE_PASSWORD_CHANGE_ALL ||
                         ($this->reset_password() && $weak)) {
@@ -1084,7 +1098,7 @@ class tool_uploadusercli_user {
                 if (enrol_is_enabled('manual')) {
                     $manual = enrol_get_plugin('manual');
                 } else {
-                    $manual = null;
+                    $manual = NULL;
                 }
 
                 if ($courseid == SITEID) {
