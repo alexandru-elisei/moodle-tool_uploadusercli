@@ -202,6 +202,7 @@ class tool_uploadusercli_processor {
         tool_uploadusercli_debug::show("Entered constructor.", UUC_DEBUG_LOW,
                                                 $this->debuglevel, "PROCESSOR");
 
+        /*
         // Get all the possible user name fields.
         $UUC_STD_FIELDS = array_merge($UUC_STD_FIELDS, get_all_user_name_fields());
 
@@ -212,12 +213,9 @@ class tool_uploadusercli_processor {
                 $profilefieldname = 'profile_field_' . $field->shortname;
                 // Add new profile field.
                 $UUC_PRF_FIELDS[] = $profilefieldname;
-            /*
-            $profilefields[$profilefieldname] = $field;
-            unset($profilefields[$key]);
-             */
             }
         }
+         */
 
         $this->cir = $cir;
         $phonyurl = new moodle_url('/admin/tool/uploaduser/index.php');

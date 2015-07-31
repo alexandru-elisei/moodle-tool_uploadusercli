@@ -118,6 +118,18 @@ if ($options['help']) {
 
 //echo "Moodle user uploader running ...\n\n";
 
+// Get all the possible user name fields.
+$UUC_STD_FIELDS = array_merge($UUC_STD_FIELDS, get_all_user_name_fields());
+
+// Get profile fields.
+$UUC_PRF_FIELDS = $DB->get_records('user_info_field');
+if ($UUC_PRF_FIELDS) {
+    foreach ($UUC_PRF_FIELDS as $key => $field) {
+        $profilefieldname = 'profile_field_' . $field->shortname;
+        $UUC_PRF_FIELDS[] = $profilefieldname;
+    }
+}
+
 $processoroptions = array(
     'allowdeletes' => ($options['allowdeletes'] === true ||
                 core_text::strtolower($options['allowdeletes']) == 'true'),
