@@ -440,6 +440,7 @@ class tool_uploadusercli_user {
                 } else if (in_array($field, $UUC_STD_FIELDS) ||
                            in_array($field, $UUC_PRF_FIELDS)) {
                     $finaldata->$field = $this->existing->$field;
+                    $this->rawdata[$field] = $this->existing->$field;
                 } else {
                     $finaldata->$field = trim($value);
                 }
@@ -646,8 +647,10 @@ class tool_uploadusercli_user {
                 return false;
             }
 
-            $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
-            profile_save_data($this->finaldata);
+            if (!$this->isremote) {
+                $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
+                profile_save_data($this->finaldata);
+            }
 
             if ($this->needpasswordchange) {
                 set_user_preference('auth_forcepasswordchange', 1, $this->finaldata);
@@ -816,8 +819,11 @@ class tool_uploadusercli_user {
         }
 
         $oldpasswd = $existingdata->password;
-        if (!$isinternalauth) {
-            $existingdata->password = AUTH_PASSWORD_NOT_CACHES;
+        if ($this->isremote) {
+            // Do not modify remote users' passwords.
+            
+        } else if (!$isinternalauth) {
+            $existingdata->password = AUTH_PASSWORD_NOT_CACHED;
             unset_user_preference('create_password', $existingdata);
             unset_user_preference('auth_forcepasswordchange', $existingdata);
         } else if (!empty($data->password)) {
