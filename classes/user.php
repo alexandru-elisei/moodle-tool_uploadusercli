@@ -84,6 +84,9 @@ class tool_uploadusercli_user {
     /** @var bool if we need to logout the user after updating. */
     protected $dologout = false;
 
+    /** @var bool if the user is remote. */
+    protected $isremote = false;
+
     /** @var bool set to true once we have started processing the user. */
     protected $processstarted = false;
 
@@ -335,11 +338,19 @@ class tool_uploadusercli_user {
                                                     $this->debuglevel, "USER");
 
         // Validate moodle net host id.
-        if (!is_numeric($this->rawdata['mnethostid'])) {
+        if (empty($this->rawdata['mnethostid'])) {
+            $this->rawdata['mnethostid'] = $CFG->mnet_localhost_id;
+        } else if (!is_numeric($this->rawdata['mnethostid'])) {
             var_dump($this->rawdata['mnethostid']);
             $this->error('mnethostidnotanumber', 
                             new lang_string('mnethostidnotanumber', 'error'));
             return false;
+        }
+
+        if ($this->rawdata['mnethostid'] !== $CFG->mnet_localhost_id) {
+            $this->isremote = true;
+        } else {
+            $this->isremote = false;
         }
 
         tool_uploadusercli_debug::show("Validated mnethostid.", UUC_DEBUG_LOW,
@@ -356,6 +367,10 @@ class tool_uploadusercli_user {
             } else if (!$this->can_delete()) {
                 $this->error('usernotdeletedoff', 
                                 new lang_string('usernotdeletedoff', 'error'));
+                return false;
+            } else if ($this->isremote) {
+                $this->error('remoteusercannotdelete', 
+                            new lang_string('remoteusercannotdelete', 'error'));
                 return false;
             } else if (is_siteadmin($this->existing->id)) {
                 $this->error('usernotdeletedadmin', 
