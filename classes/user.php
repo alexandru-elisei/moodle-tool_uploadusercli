@@ -90,9 +90,6 @@ class tool_uploadusercli_user {
     /** @var bool set to true once we have started processing the user. */
     protected $processstarted = false;
 
-    /** @var array supported auth plugins that enabled. */
-    protected $supportedauths = array();
-
     /** @var array fields required on user creation. */
     static protected $mandatoryfields = array('username', 'firstname', 
                                               'lastname', 'email');
@@ -150,9 +147,6 @@ class tool_uploadusercli_user {
 
         // Copy import options.
         $this->importoptions = $importoptions;
-
-        // Supported authentification plugins.
-        $this->supportedauths = uu_supported_auths();
 
         tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE, 
                             $this->debuglevel, "USER", "__construct", $this);
@@ -617,6 +611,8 @@ class tool_uploadusercli_user {
         }
         $this->processstarted = true;
 
+        print "Action queued: $this->do\n";
+
         if ($this->do === self::DO_DELETE) {
 
             tool_uploadusercli_debug::show("Deleting.", UUC_DEBUG_LOW,
@@ -647,11 +643,6 @@ class tool_uploadusercli_user {
                 return false;
             }
 
-            if (!$this->isremote) {
-                $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
-                profile_save_data($this->finaldata);
-            }
-
             if ($this->needpasswordchange) {
                 set_user_preference('auth_forcepasswordchange', 1, $this->finaldata);
                 $this->set_status('forcepasswordchange', 
@@ -671,20 +662,14 @@ class tool_uploadusercli_user {
                 return false;
             }
 
-            // Wrong - class variable remoteuser
-            /*
-            if (!$remoteuser) {
+            if (!$this->isremote) {
                 $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
-                profile_save_data($existinguser);
+                profile_save_data($this->finaldata);
             }
-             */
-            
+
             if ($this->dologout) {
                 \core\session\manager::kill_user_sessions($this->finaldata->id);
             }
-
-
-            // DO SCRIPTS FOR BULK
             
             $this->set_status('useraccountupdated', 
                     new lang_string('useraccountupdated', 'tool_uploaduser'));
@@ -853,7 +838,7 @@ class tool_uploadusercli_user {
      * @return array.
      */
     protected function get_final_create_data($data) {
-        global $CFG, $DB, $UUC_DEFAULTS;
+        global $CFG, $DB, $UUC_DEFAULTS, $UUC_SUPPORTEDAUTHS;
 
         tool_uploadusercli_debug::show("Entering get_final_create_data.", 
                                     UUC_DEBUG_LOW, $this->debuglevel, "USER");
@@ -881,7 +866,7 @@ class tool_uploadusercli_user {
                         new lang_string('exceptiongettingauthplugin', 'error'));
             return false;
         }
-        if (!isset($this->supportedauths[$data->auth])) {
+        if (!isset($UUC_SUPPORTEDAUTHS[$data->auth])) {
             $this->set_status('userauthunsupported', 
                             new lang_string('userauthunsupported', 'error'));
         }

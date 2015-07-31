@@ -62,6 +62,9 @@ $UUC_DEFAULTS = array(
     'mailformat'    => '1',     // pretty HTML
 );
 
+// Supported authentication plugins.
+$UUC_SUPPORTEDAUTHS = uu_supported_auths();
+
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(
     'help' => false,
