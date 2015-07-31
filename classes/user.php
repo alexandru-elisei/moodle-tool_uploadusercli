@@ -51,9 +51,6 @@ class tool_uploadusercli_user {
     /** @var array errors. */
     protected $errors = array();
 
-    /** @var array default values. */
-    protected $defaults = array();
-
     /** @var int if the user will need to change his/her password. */
     protected $needpasswordchange = false;
 
@@ -684,7 +681,7 @@ class tool_uploadusercli_user {
      * @return array
      */
     protected function get_final_update_data($data, $existingdata, $usedefaults = false, $missingonly = false) {
-        global $DB, $UUC_STD_FIELDS, $UUC_PRF_FIELDS;
+        global $DB, $UUC_STD_FIELDS, $UUC_PRF_FIELDS, $UUC_DEFAULTS;
         $doupdate = false;
 
         $existingdata->timemodified = time();
@@ -703,14 +700,18 @@ class tool_uploadusercli_user {
         $allfields = array_merge($UUC_STD_FIELDS, $UUC_PRF_FIELDS);
         foreach ($allfields as $field) {
             // These fields are being processed separatedly.
-            if ($field === 'password' || $field === 'auth' || 
-                $field === 'suspended' || $field === 'oldusername') {
+            if ($field === 'password' || $field === 'auth' ||
+                    $field === 'suspended' || $field === 'oldusername') {
                 continue;
             }
 
             // Field not present in the CSV file.
             if (!$data->$field && !$existingdata->$field) {
-                continue;
+                if ($this->updatemode === tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS && !empty($UUC_DEFAULTS[$field])) {
+                    $data->$field = $UUC_DEFAULTS[$field];
+                } else {
+                    continue;
+                }
             }
 
             if ($missingonly) {
@@ -721,20 +722,14 @@ class tool_uploadusercli_user {
                 // Override everything.
 
             } else if ($this->updatemode === tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_ONLY) {
-                if (!empty($this->defaults[$field])) {
+                if (!empty($UUC_DEFAULTS[$field])) {
                     // Do not override with form defaults.
                     continue;
                 }
             }
 
             if ($existingdata->$field !== $data->$field) {
-                // Renaming.
-                if ($field === 'username' && $this->rawdata['oldusername'] &&
-                                    $this->rawdata['oldusername'] !== '') {
-                    $existingdata->username = $this->rawdata['username'];
-                    $doupdate = true;
-                    continue;
-                } else if ($field === 'email') {
+                if ($field === 'email') {
                     if ($DB->record_exists('user', array('email' => $data->email))) {
                         if ($this->importoptions['noemailduplicates']) {
                             $this->error('useremailduplicate',
@@ -817,13 +812,13 @@ class tool_uploadusercli_user {
 
     /**
      * Assemble the user data based on defaults.
-     * This returns the final data to be passed to create_user().
+     * This returns the final data to be passed to proceed().
      *
      * @param array data current data.
-     * @return array
+     * @return array.
      */
     protected function get_final_create_data($data) {
-        global $CFG, $DB;
+        global $CFG, $DB, $UUC_DEFAULTS;
 
         tool_uploadusercli_debug::show("Entering get_final_create_data.", 
                                     UUC_DEBUG_LOW, $this->debuglevel, "USER");
@@ -842,7 +837,7 @@ class tool_uploadusercli_user {
         }
 
         if (empty($data->auth)) {
-            $data->auth = 'manual';
+            $data->auth = empty($UUC_DEFAULTS['auth']) ? 'manual' : $UUC_DEFAULTS['auth'];
         }
         try {
             $auth = get_auth_plugin($data->auth);
@@ -873,12 +868,12 @@ class tool_uploadusercli_user {
         }
 
         if (empty($data->lang)) {
-            $data->lang ='';
+            $data->lang = empty($UUC_DEFAULTS['lang']) ? '' : $UUC_DEFAULTS['lang'];
         } else if (clean_param($data->lang, PARAM_LANG) === '') {
             $this->set_status('cannotfindlang', 
                             new lang_string('cannotfindlang', 
                             'error', $data->lang));
-            $data->lang='';
+            $data->lang = empty($UUC_DEFAULTS['lang']) ? '' : $UUC_DEFAULTS['lang'];
         }
 
         $this->needpasswordchange = false;

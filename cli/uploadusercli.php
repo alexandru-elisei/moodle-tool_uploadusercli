@@ -36,7 +36,7 @@ require_once($CFG->dirroot . '/cohort/lib.php');
 require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 require_once('../classes/debug.php');
 
-/** @var array of standard csv fields. */
+// Standard csv fields. 
 $UUC_STD_FIELDS = array('id', 'username', 'email',
     'city', 'country', 'lang', 'timezone', 'mailformat', 'firstname',
     'maildisplay', 'maildigest', 'htmleditor', 'autosubscribe',
@@ -50,8 +50,17 @@ $UUC_STD_FIELDS = array('id', 'username', 'email',
     'mnethostid',  // Can not be used for adding, updating or deleting of users - only for enrolments, groups, cohorts and suspending.
 );
 
-/** @var array of profile fields. */
+// Profile fields.
 $UUC_PRF_FIELDS = array();
+
+// Default values.
+$UUC_DEFAULTS = array(
+    'lang'          => 'en',
+    'auth'          => 'manual',
+    'maildigest'    => '0',     // no digest (single email per forum post)
+    'maildisplay'   => '1',     // allow everyone to see the email address
+    'mailformat'    => '1',     // pretty HTML
+);
 
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(

@@ -202,21 +202,6 @@ class tool_uploadusercli_processor {
         tool_uploadusercli_debug::show("Entered constructor.", UUC_DEBUG_LOW,
                                                 $this->debuglevel, "PROCESSOR");
 
-        /*
-        // Get all the possible user name fields.
-        $UUC_STD_FIELDS = array_merge($UUC_STD_FIELDS, get_all_user_name_fields());
-
-        // Get profilefields.
-        $UUC_PRF_FIELDS = $DB->get_records('user_info_field');
-        if ($UUC_PRF_FIELDS) {
-            foreach ($UUC_PRF_FIELDS as $key => $field) {
-                $profilefieldname = 'profile_field_' . $field->shortname;
-                // Add new profile field.
-                $UUC_PRF_FIELDS[] = $profilefieldname;
-            }
-        }
-         */
-
         $this->cir = $cir;
         $phonyurl = new moodle_url('/admin/tool/uploaduser/index.php');
         $this->columns = uu_validate_user_upload_columns($this->cir, 
