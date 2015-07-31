@@ -876,7 +876,8 @@ class tool_uploadusercli_user {
             $data->lang ='';
         } else if (clean_param($data->lang, PARAM_LANG) === '') {
             $this->set_status('cannotfindlang', 
-                                    new lang_string('cannotfindlang', 'error'));
+                            new lang_string('cannotfindlang', 
+                            'error', $data->lang));
             $data->lang='';
         }
 
