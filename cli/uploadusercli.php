@@ -35,6 +35,7 @@ require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/cohort/lib.php');
 require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 require_once('../classes/debug.php');
+require_once('../locallib.php');
 
 // Standard csv fields. 
 $UUC_STD_FIELDS = array('id', 'username', 'email',

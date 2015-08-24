@@ -150,7 +150,7 @@ class tool_uploadusercli_user {
         // Copy import options.
         $this->importoptions = $importoptions;
 
-        tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE, 
+        uuc_debug_show("New class created", UUC_DEBUG_VERBOSE, 
                             $this->debuglevel, "USER", "__construct", $this);
 
         //var_dump($this);
@@ -312,7 +312,7 @@ class tool_uploadusercli_user {
     public function prepare() {
         global $DB, $CFG;
 
-        tool_uploadusercli_debug::show("Entered prepare.", UUC_DEBUG_LOW, 
+        uuc_debug_show("Entered prepare.", UUC_DEBUG_LOW, 
                                         $this->debuglevel, "USER");
 
         $this->prepared = true;
@@ -331,7 +331,7 @@ class tool_uploadusercli_user {
             return false;
         }
 
-        tool_uploadusercli_debug::show("Validated username.", UUC_DEBUG_LOW, 
+        uuc_debug_show("Validated username.", UUC_DEBUG_LOW, 
                                                     $this->debuglevel, "USER");
 
         // Validate moodle net host id.
@@ -350,7 +350,7 @@ class tool_uploadusercli_user {
             $this->isremote = false;
         }
 
-        tool_uploadusercli_debug::show("Validated mnethostid.", UUC_DEBUG_LOW,
+        uuc_debug_show("Validated mnethostid.", UUC_DEBUG_LOW,
                                                     $this->debuglevel, "USER");
 
         $this->existing = $this->exists();
@@ -380,7 +380,7 @@ class tool_uploadusercli_user {
             }
             $this->do = self::DO_DELETE;
 
-            tool_uploadusercli_debug::show("User deletion queued.", UUC_DEBUG_LOW,
+            uuc_debug_show("User deletion queued.", UUC_DEBUG_LOW,
                                                     $this->debuglevel, "USER");
 
             return true;
@@ -393,7 +393,7 @@ class tool_uploadusercli_user {
             return false;
         }
 
-        tool_uploadusercli_debug::show("Validated id field.", UUC_DEBUG_LOW, 
+        uuc_debug_show("Validated id field.", UUC_DEBUG_LOW, 
                                                     $this->debuglevel, "USER");
  
         // Checking mandatory fields.
@@ -475,7 +475,7 @@ class tool_uploadusercli_user {
 
             $this->do = self::DO_UPDATE;
 
-            tool_uploadusercli_debug::show("Renaming queued.", UUC_DEBUG_LOW,
+            uuc_debug_show("Renaming queued.", UUC_DEBUG_LOW,
                                                     $this->debuglevel, "USER");
 
             $this->set_status('userrenamed', new lang_string('userrenamed', 
@@ -508,11 +508,11 @@ class tool_uploadusercli_user {
                             array('from' => $original, 'to' => $this->name)));
             }
 
-            tool_uploadusercli_debug::show("Username incremented.", UUC_DEBUG_LOW,
+            uuc_debug_show("Username incremented.", UUC_DEBUG_LOW,
                                             $this->debuglevel, "USER");
         }  
 
-        tool_uploadusercli_debug::show("Last sanity checks...", UUC_DEBUG_LOW,
+        uuc_debug_show("Last sanity checks...", UUC_DEBUG_LOW,
                                         $this->debuglevel, "USER");
 
         // Ultimate check mode vs. existence.
@@ -558,7 +558,7 @@ class tool_uploadusercli_user {
         // Get final data.
         if ($this->existing) {
 
-            tool_uploadusercli_debug::show("Getting final update data.", 
+            uuc_debug_show("Getting final update data.", 
                                     UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
             $missingonly = ($updatemode === tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
@@ -569,7 +569,7 @@ class tool_uploadusercli_user {
                             new lang_string('usernotupdatederror', 'error'));
                 return false;
             } else {
-                tool_uploadusercli_debug::show("Finaldata:", UUC_DEBUG_VERBOSE,
+                uuc_debug_show("Finaldata:", UUC_DEBUG_VERBOSE,
                             $this->debuglevel, "USER", "prepare", $finaldata);
                 $this->do = self::DO_UPDATE;
             }
@@ -581,9 +581,9 @@ class tool_uploadusercli_user {
                     new lang_string('usernotaddederror', 'error'));
                 return false;
             } else {
-                tool_uploadusercli_debug::show("Creation queued.", UUC_DEBUG_LOW,
+                uuc_debug_show("Creation queued.", UUC_DEBUG_LOW,
                                                     $this->debuglevel, "USER");
-                tool_uploadusercli_debug::show("Finaldata:", UUC_DEBUG_VERBOSE,
+                uuc_debug_show("Finaldata:", UUC_DEBUG_VERBOSE,
                             $this->debuglevel, "USER", "prepare", $finaldata);
                 $this->do = self::DO_CREATE;
             }
@@ -601,7 +601,7 @@ class tool_uploadusercli_user {
      */
     public function proceed() {
 
-        tool_uploadusercli_debug::show("Entering proceed.", UUC_DEBUG_LOW,
+        uuc_debug_show("Entering proceed.", UUC_DEBUG_LOW,
                                                     $this->debuglevel, "USER");
 
         if (!$this->prepared) {
@@ -617,7 +617,7 @@ class tool_uploadusercli_user {
 
         if ($this->do === self::DO_DELETE) {
 
-            tool_uploadusercli_debug::show("Deleting.", UUC_DEBUG_LOW,
+            uuc_debug_show("Deleting.", UUC_DEBUG_LOW,
                                             $this->debuglevel, "USER");
 
             $this->finaldata = $this->existing;
@@ -843,7 +843,7 @@ class tool_uploadusercli_user {
     protected function get_final_create_data($data) {
         global $CFG, $DB, $UUC_DEFAULTS, $UUC_SUPPORTEDAUTHS;
 
-        tool_uploadusercli_debug::show("Entering get_final_create_data.", 
+        uuc_debug_show("Entering get_final_create_data.", 
                                     UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
         $data->confirmed = 1;
@@ -903,7 +903,7 @@ class tool_uploadusercli_user {
 
         if ($isinternalauth) {
 
-            tool_uploadusercli_debug::show("Checking password.", UUC_DEBUG_LOW,
+            uuc_debug_show("Checking password.", UUC_DEBUG_LOW,
                                                     $this->debuglevel, "USER");
 
             if (empty($data->password)) {
@@ -943,7 +943,7 @@ class tool_uploadusercli_user {
         global $DB;
         $cohorts = array();
 
-        tool_uploadusercli_debug::show("Entering add_to_cohort", UUC_DEBUG_LOW,
+        uuc_debug_show("Entering add_to_cohort", UUC_DEBUG_LOW,
                                                     $this->debuglevel, 'USER');
 
         // Cohort is not a standard or profile field, it is not saved in the 
@@ -1019,7 +1019,7 @@ class tool_uploadusercli_user {
     protected function add_to_egr() {
         global $DB;
         
-        tool_uploadusercli_debug::show("Entering add_to_egr", UUC_DEBUG_LOW,
+        uuc_debug_show("Entering add_to_egr", UUC_DEBUG_LOW,
                                         $this->debuglevel, "USER");
 
         foreach ($this->rawdata as $field => $value) {

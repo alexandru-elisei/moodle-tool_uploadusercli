@@ -199,7 +199,7 @@ class tool_uploadusercli_processor {
             $this->debuglevel = $options['debuglevel'];
         }
 
-        tool_uploadusercli_debug::show("Entered constructor.", UUC_DEBUG_LOW,
+        uuc_debug_show("Entered constructor.", UUC_DEBUG_LOW,
                                                 $this->debuglevel, "PROCESSOR");
 
         $this->cir = $cir;
@@ -208,7 +208,7 @@ class tool_uploadusercli_processor {
                                 $UUC_STD_FIELDS, $UUC_PRF_FIELDS, $phonyurl);
         $this->reset();
 
-        tool_uploadusercli_debug::show("New class created", UUC_DEBUG_VERBOSE,
+        uuc_debug_show("New class created", UUC_DEBUG_VERBOSE,
                         $this->debuglevel, "PROCESSOR", "__construct", $this);
     }
 
@@ -221,7 +221,7 @@ class tool_uploadusercli_processor {
     public function execute($tracker = NULL) {
         global $DB;
 
-        tool_uploadusercli_debug::show("Entered execute.", UUC_DEBUG_LOW,
+        uuc_debug_show("Entered execute.", UUC_DEBUG_LOW,
                                                 $this->debuglevel, "PROCESSOR");
 
         if ($this->processstarted) {
@@ -255,7 +255,7 @@ class tool_uploadusercli_processor {
             if ($user->prepare()) {
                 if ($user->proceed()) {
 
-                    tool_uploadusercli_debug::show("User proceed success.", 
+                    uuc_debug_show("User proceed success.", 
                                 UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
 
                     $status = $user->get_status();
@@ -267,7 +267,7 @@ class tool_uploadusercli_processor {
                         $deleted++;
                     }
 
-                    tool_uploadusercli_debug::show("User proceeded.", UUC_DEBUG_VERBOSE,
+                    uuc_debug_show("User proceeded.", UUC_DEBUG_VERBOSE,
                         $this->debuglevel, "PROCESSOR", "execute", $status);
 
                     $data = array_merge($data, $user->get_finaldata(), 
@@ -275,7 +275,7 @@ class tool_uploadusercli_processor {
                     $tracker->output($this->linenum, true, $status, $data);
                 } else {
 
-                    tool_uploadusercli_debug::show("User proceed failed.",
+                    uuc_debug_show("User proceed failed.",
                                 UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
 
                     $errors++;
@@ -284,7 +284,7 @@ class tool_uploadusercli_processor {
                 }
             } else {
 
-                tool_uploadusercli_debug::show("User prepare failed.",
+                uuc_debug_show("User prepare failed.",
                                 UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
 
                 $errors++;
