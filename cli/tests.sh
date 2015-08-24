@@ -69,215 +69,457 @@ create_text "${no}. Creating" "success"\
        	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
 php uploadusercli.php --mode=createnew --file=$output_file $options
 
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 make_pristine
 
 
 # Deletion (success)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file
-make_pristine
-
-create_text "${no}. Deleting" "success" \
-	"username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
-
-
-# Deletion (failure - deletes not allowed)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file
-make_pristine
-
-create_text "${no}. Deleting" "failure - deletes not allowed"\
-	"username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file $options
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Deletion (failure - user does not exist)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Deleting" "failure - user does not exist"\
-	"username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
-
-
-# Deletion (failure - user admin)
-((no++))
-create_text "${no}. Deleting" "failure - user admin"\
-	"username,firstname,lastname,email,deleted" \
-       	"admin,${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
-
-
-# Deletion (failure - user guest)
-((no++))
-create_text "${no}. Deleting" "failure - user guest"\
-	"username,firstname,lastname,email,deleted" \
-       	"guest,${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
-
-
-# Creation (failure - mnethostid invalid)
-((no++))
-create_text "${no}. Creation" "failure - mnethostid invalid"\
-	"username,mnethostid" \
-       	"${new}_${no},a"
-php uploadusercli.php --mode=createnew --file=$output_file $options
-
-
-# Creation (failure - invalid id)
-((no++))
-create_text "${no}. Creating" "failure - invalid id"\
-	"username,firstname,lastname,email,id" \
-       	"guest,${new}_${no},${new}_${no},${new}_${no}@mail.com,a"
-php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
-
-
-# Creation (failure - missing fields)
-((no++))
-create_text "${no}. Creating" "failure - missing fields"\
-	"username,firstname,lastname" \
-       	"guest,${new}_${no},${new}_${no}"
-php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
-
-
-# Creation (failure - user exists)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file
-make_pristine
-
-create_text "${no}. Creation" "failure - user exists"\
-	"username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file $options
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Updating (failure - user does not exist)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Updating" "failure - user does not exist"\
-	"username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=update --file=$output_file $options
-
-
-# Renaming (failure - renaming not allowed)
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Renaming" "failure - renaming not allowed"\
-	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
-php uploadusercli.php --mode=update --updatemode=dataonly --file=$output_file $options
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Renaming (failure - new user exists)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Renaming" "failure - new username exists"\
-	"username,firstname,lastname,email,oldusername" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
-php uploadusercli.php --mode=update --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Renaming (failure - can not update)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Renaming" "failure - can not uptdate"\
-	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
-php uploadusercli.php --mode=update --updatemode=nothing --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Renaming (failure - oldusername does not exist)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Renaming" "failure - oldusername does not exist"\
-	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
-php uploadusercli.php --mode=update --updatemode=dataonly --file=$output_file $options --allowrenames
-
-
-# Renaming (failure - can not rename, part 2)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Renaming" "failure - can not rename, part 2"\
-	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Renaming (success)
 #((no++))
 #create_silent "username,firstname,lastname,email" \
 #       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file
+#make_pristine
+#
+#create_text "${no}. Deleting" "success" \
+#	"username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
+#
+#
+## Deletion (failure - deletes not allowed)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file
+#make_pristine
+#
+#create_text "${no}. Deleting" "failure - deletes not allowed"\
+#	"username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file $options
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Deletion (failure - user does not exist)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Deleting" "failure - user does not exist"\
+#	"username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
+#
+#
+## Deletion (failure - user admin)
+#((no++))
+#create_text "${no}. Deleting" "failure - user admin"\
+#	"username,firstname,lastname,email,deleted" \
+#       	"admin,${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
+#
+#
+## Deletion (failure - user guest)
+#((no++))
+#create_text "${no}. Deleting" "failure - user guest"\
+#	"username,firstname,lastname,email,deleted" \
+#       	"guest,${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
+#
+#
+## Creation (failure - mnethostid invalid)
+#((no++))
+#create_text "${no}. Creation" "failure - mnethostid invalid"\
+#	"username,mnethostid" \
+#       	"${new}_${no},a"
+#php uploadusercli.php --mode=createnew --file=$output_file $options
+#
+#
+## Creation (failure - invalid id)
+#((no++))
+#create_text "${no}. Creating" "failure - invalid id"\
+#	"username,firstname,lastname,email,id" \
+#       	"guest,${new}_${no},${new}_${no},${new}_${no}@mail.com,a"
+#php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
+#
+#
+## Creation (failure - missing fields)
+#((no++))
+#create_text "${no}. Creating" "failure - missing fields"\
+#	"username,firstname,lastname" \
+#       	"guest,${new}_${no},${new}_${no}"
+#php uploadusercli.php --mode=createnew --file=$output_file $options --allowdeletes
+#
+#
+## Creation (failure - user exists)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file
+#make_pristine
+#
+#create_text "${no}. Creation" "failure - user exists"\
+#	"username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file $options
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Updating (failure - user does not exist)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Updating" "failure - user does not exist"\
+#	"username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=update --file=$output_file $options
+#
+#
+## Renaming (failure - renaming not allowed)
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Renaming" "failure - renaming not allowed"\
+#	"username,firstname,lastname,email,oldusername" \
+#       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
+#php uploadusercli.php --mode=update --updatemode=dataonly --file=$output_file $options
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Renaming (failure - new user exists)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Renaming" "failure - new username exists"\
+#	"username,firstname,lastname,email,oldusername" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
+#php uploadusercli.php --mode=update --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Renaming (failure - can not update)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Renaming" "failure - can not uptdate"\
+#	"username,firstname,lastname,email,oldusername" \
+#       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
+#php uploadusercli.php --mode=update --updatemode=nothing --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Renaming (failure - oldusername does not exist)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Renaming" "failure - oldusername does not exist"\
+#	"username,firstname,lastname,email,oldusername" \
+#       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
+#php uploadusercli.php --mode=update --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#
+## Renaming (failure - can not rename, part 2)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Renaming" "failure - can not rename, part 2"\
+#	"username,firstname,lastname,email,oldusername" \
+#       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Renaming (success)
+##((no++))
+##create_silent "username,firstname,lastname,email" \
+##       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+##php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+##make_pristine
+##
+##create_text "${no}. Renaming" "success"\
+##	"username,firstname,lastname,email,oldusername" \
+##       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
+##php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+##
+##create_text "${no}. Deleting" "success - deleting what was renaming during test 16" \
+## 	"username,firstname,lastname,email,deleted" \
+##       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+##php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+##make_pristine
+#
+#
+## Renaming (failure - renaming admin)
+#((no++))
+#create_text "${no}. Renaming" "failure - renaming admin"\
+#	"username,firstname,lastname,email,oldusername" \
+#       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,admin"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#
+## Renaming (failure - renaming guest)
+#((no++))
+#create_text "${no}. Renaming" "failure - renaming guest"\
+#	"username,firstname,lastname,email,oldusername" \
+#       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,guest"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#
+## Creating (error - unknown auth)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Creating" "error - unknown auth"\
+#	"username,firstname,lastname,email,auth" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,as"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Creating (error - email duplicate)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Creating" "error - email duplicate"\
+#	"username,firstname,lastname,email" \
+#       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Creating (warning - invalid email)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Creating" "warning - invalid email"\
+#	"username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Creating (warning - invalid lang)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Creating" "warning - invalid lang"\
+#	"username,firstname,lastname,email,lang" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,asdf"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Creating (error - password field missing)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Creating" "error - password field missing"\
+#	"username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames --passwordmode=field
+#
+#
+## Creating (success - password auto-generated)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Creating" "success - password auto-generated"\
+#	"username,firstname,lastname,email,password" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,a"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames --passwordmode=field --forcepasswordchange=weak
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Updating (failure - new email exists, noemailduplicates set)
+#((no++))
+## First user
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+## User to be modified
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Updating" "failure - new email exists, noemailduplicates set"\
+#	"username,firstname,lastname,email" \
+#       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --noemailduplicates=true
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+## User to be modified
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+#
+## Updating (warning - new email exists, noemailduplicates unset)
+#((no++))
+## First user
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+## User to be modified
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Updating" "warning - new email exists, noemailduplicates unset"\
+#	"username,firstname,lastname,email" \
+#       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --noemailduplicates=false
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+## User to be modified
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Updating (failure - invalid auth)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Updating" "failure - invalid auth"\
+#	"username,firstname,lastname,email,auth" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,blah"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --noemailduplicates=false
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Updating (success - firstname,lastname)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Updating" "success"\
+#	"username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no}_firstname,${new}_${no}_lastname,${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Renaming (success)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_silent "username,deleted" \
+#       	"newusername,1"
 #php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 #make_pristine
 #
@@ -286,327 +528,85 @@ make_pristine
 #       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
 #php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
 #
-#create_text "${no}. Deleting" "success - deleting what was renaming during test 16" \
-# 	"username,firstname,lastname,email,deleted" \
+#create_silent "username,firstname,lastname,email,deleted" \
 #       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
 #php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
 #make_pristine
-
-
-# Renaming (failure - renaming admin)
-((no++))
-create_text "${no}. Renaming" "failure - renaming admin"\
-	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,admin"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-
-# Renaming (failure - renaming guest)
-((no++))
-create_text "${no}. Renaming" "failure - renaming guest"\
-	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,guest"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-
-# Creating (error - unknown auth)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Creating" "error - unknown auth"\
-	"username,firstname,lastname,email,auth" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,as"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Creating (error - email duplicate)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Creating" "error - email duplicate"\
-	"username,firstname,lastname,email" \
-       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Creating (warning - invalid email)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Creating" "warning - invalid email"\
-	"username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Creating (warning - invalid lang)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Creating" "warning - invalid lang"\
-	"username,firstname,lastname,email,lang" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,asdf"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Creating (error - password field missing)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Creating" "error - password field missing"\
-	"username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames --passwordmode=field
-
-
-# Creating (success - password auto-generated)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Creating" "success - password auto-generated"\
-	"username,firstname,lastname,email,password" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,a"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames --passwordmode=field --forcepasswordchange=weak
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Updating (failure - new email exists, noemailduplicates set)
-((no++))
-# First user
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-# User to be modified
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Updating" "failure - new email exists, noemailduplicates set"\
-	"username,firstname,lastname,email" \
-       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --noemailduplicates=true
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-# User to be modified
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-
-# Updating (warning - new email exists, noemailduplicates unset)
-((no++))
-# First user
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-# User to be modified
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Updating" "warning - new email exists, noemailduplicates unset"\
-	"username,firstname,lastname,email" \
-       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_1@mail.com"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --noemailduplicates=false
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no}_1,${new}_${no},${new}_${no},${new}_${no}_1@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-# User to be modified
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no}_2,${new}_${no},${new}_${no},${new}_${no}_2@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Updating (failure - invalid auth)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Updating" "failure - invalid auth"\
-	"username,firstname,lastname,email,auth" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,blah"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --noemailduplicates=false
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Updating (success - firstname,lastname)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Updating" "success"\
-	"username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no}_firstname,${new}_${no}_lastname,${new}_${no}@mail.com"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Renaming (success)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_silent "username,deleted" \
-       	"newusername,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Renaming" "success"\
-	"username,firstname,lastname,email,oldusername" \
-       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,${new}_${no}"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"newusername,${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Updating (success - cohort created)
-((no++))
-create_silent "username,firstname,lastname,email" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Updating" "success - cohort created"\
-	"username,firstname,lastname,email,cohort1" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,new_cohort"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Creating (success - sysrole added)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Creating" "success - sysrole added"\
-	"username,firstname,lastname,email,sysrole1" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,manager"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Creating (warning - invalid sysrole)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Creating" "warning - unknown sysrole"\
-	"username,firstname,lastname,email,sysrole1" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,phony"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-# Creating (failure - remote user)
-((no++))
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-create_text "${no}. Creating" "failure - remote user"\
-	"username,firstname,lastname,email,mnethostid" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,2"
-php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
-
-create_silent "username,firstname,lastname,email,deleted" \
-       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
-php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
-make_pristine
-
-
-
-# Cleaning the environment
-unset output_file
-unset options
+#
+#
+## Updating (success - cohort created)
+#((no++))
+#create_silent "username,firstname,lastname,email" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Updating" "success - cohort created"\
+#	"username,firstname,lastname,email,cohort1" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,new_cohort"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Creating (success - sysrole added)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Creating" "success - sysrole added"\
+#	"username,firstname,lastname,email,sysrole1" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,manager"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Creating (warning - invalid sysrole)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Creating" "warning - unknown sysrole"\
+#	"username,firstname,lastname,email,sysrole1" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,phony"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+## Creating (failure - remote user)
+#((no++))
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#create_text "${no}. Creating" "failure - remote user"\
+#	"username,firstname,lastname,email,mnethostid" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,2"
+#php uploadusercli.php --mode=createorupdate --updatemode=dataonly --file=$output_file $options --allowrenames
+#
+#create_silent "username,firstname,lastname,email,deleted" \
+#       	"${new}_${no},${new}_${no},${new}_${no},${new}_${no}@mail.com,1"
+#php uploadusercli.php --mode=createnew --file=$output_file --allowdeletes
+#make_pristine
+#
+#
+#
+## Cleaning the environment
+#unset output_file
+#unset options

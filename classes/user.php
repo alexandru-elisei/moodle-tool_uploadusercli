@@ -24,6 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_capability('moodle/user:delete', context_system::instance());
+
 /**
  * User class.
  *
@@ -142,7 +144,7 @@ class tool_uploadusercli_user {
 
         // Extract user options.
         foreach (self::$optionfields as $option => $default) {
-            $this->options[$option] = $rawdata[$option] ? $rawdata[$option] : NULL;
+            $this->options[$option] = isset($rawdata[$option]) ? $rawdata[$option] : NULL;
         }
 
         // Copy import options.
@@ -182,10 +184,10 @@ class tool_uploadusercli_user {
      * @return void
      */
     protected function set_status($code, lang_string $message) {
-        if (array_key_exists($code, $this->statuses)) {
+        if (array_key_exists($code, $this->status)) {
             throw new coding_exception('Status code already defined');
         }
-        $this->statuses[$code] = $message;
+        $this->status[$code] = $message;
     }
 
     /**
@@ -202,8 +204,8 @@ class tool_uploadusercli_user {
      *
      * @return array
      */
-    public function get_statuses() {
-        return $this->statuses;
+    public function get_status() {
+        return $this->status;
     }
 
     /**
@@ -633,6 +635,7 @@ class tool_uploadusercli_user {
 
             $this->set_status('userdeleted', 
                 new lang_string('userdeleted', 'tool_uploaduser'));
+
             return true;
         } else if ($this->do === self::DO_CREATE) {
             try {

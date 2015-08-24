@@ -258,7 +258,7 @@ class tool_uploadusercli_processor {
                     tool_uploadusercli_debug::show("User proceed success.", 
                                 UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
 
-                    $status = $user->get_statuses();
+                    $status = $user->get_status();
                     if (array_key_exists('useradded', $status)) {
                         $created++;
                     } else if (array_key_exists('useraccountupdated', $status)) {

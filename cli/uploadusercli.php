@@ -166,7 +166,7 @@ $modes = array(
 );
 
 if (!isset($options['mode']) || !isset($modes[$options['mode']])) {
-    echo get_string('invalidmode', 'tool_uploaduser')."\n";
+    echo get_string('invalidmode', 'tool_uploadusercli')."\n";
     echo $help;
     die();
 }

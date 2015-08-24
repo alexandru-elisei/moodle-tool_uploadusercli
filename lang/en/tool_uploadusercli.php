@@ -34,6 +34,7 @@ $string['errors'] = 'Errors';
 $string['nochanges'] = 'No changes';
  */
 $string['pluginname'] = 'Upload users cli script';
+$string['invalidmode'] = 'Invalid mode selected';
 /*
 $string['renameerrors'] = 'Rename errors';
 $string['requiredtemplate'] = 'Required. You may use template syntax here (%l = lastname, %f = firstname, %u = coursename). See help for details and examples.';
