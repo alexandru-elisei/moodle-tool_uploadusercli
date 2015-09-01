@@ -145,12 +145,12 @@ class tool_uploadusercli_tracker {
         }
         $message = array(
             "",
-            "Created: $created",
-            "Updated: $updated",
-            "Deleted: $deleted",
-            "Errors: $errors",
+            get_string('userscreated', 'tool_uploadusercli') . ": $created",
+            get_string('usersupdated', 'tool_uploadusercli') . ": $updated",
+            get_string('usersdeleted', 'tool_uploadusercli') . ": $deleted",
             "",
-            "Total: $total",
+            get_string('errors', 'tool_uploadusercli') . ": $errors",
+            get_string('total', 'tool_uploadusercli') . ": $total",
         );
 
         if ($this->outputmode == self::OUTPUT_PLAIN) {

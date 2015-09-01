@@ -184,7 +184,7 @@ $updatemodes = array(
 if (($processoroptions['mode'] === tool_uploadusercli_processor::MODE_CREATE_OR_UPDATE ||
         $processoroptions['mode'] === tool_uploadusercli_processor::MODE_UPDATE_ONLY)
         && (!isset($options['updatemode']) || !isset($updatemodes[$options['updatemode']]))) {
-    echo get_string('invalideupdatemode', 'tool_uploaduser')."\n";
+    echo get_string('invalideupdatemode', 'tool_uploadusercli')."\n";
     echo $help;
     die();
 }
@@ -198,7 +198,7 @@ $passwordmodes = array(
 );
 
 if (!isset($options['passwordmode']) || !isset($passwordmodes[$options['passwordmode']])) {
-    echo get_string('invalidpasswordmode', 'tool_uploaduser')."\n";
+    echo get_string('invalidpasswordmode', 'tool_uploadusercli')."\n";
     echo $help;
     die();
 }
@@ -212,7 +212,7 @@ $forcepasswordchanges = array(
 );
 
 if (!isset($options['forcepasswordchange']) || !isset($forcepasswordchanges[$options['forcepasswordchange']])) {
-    echo get_string('invalidpasswordenforcingmode', 'tool_uploaduser')."\n";
+    echo get_string('invalidpasswordenforcingmode', 'tool_uploadusercli')."\n";
     echo $help;
     die();
 }
@@ -226,7 +226,7 @@ $debuglevels = array(
 );
 
 if (!isset($options['debuglevel']) || !isset($debuglevels[$options['debuglevel']])) {
-    echo get_string('invaliddebuglevel', 'tool_uploaduser')."\n";
+    echo get_string('invaliddebuglevel', 'tool_uploadusercli')."\n";
     echo $help;
     die();
 }
@@ -237,7 +237,7 @@ if (!empty($options['file'])) {
     $options['file'] = realpath($options['file']);
 }
 if (!file_exists($options['file'])) {
-    echo get_string('invalidcsvfile', 'tool_uploaduser')."\n";
+    echo get_string('invalidcsvfile', 'tool_uploadusercli')."\n";
     echo $help;
     die();
 }
@@ -245,7 +245,7 @@ if (!file_exists($options['file'])) {
 // Encoding.
 $encodings = core_text::get_encodings();
 if (!isset($encodings[$options['encoding']])) {
-    echo get_string('invalidencoding', 'tool_uploaduser')."\n";
+    echo get_string('invalidencoding', 'tool_uploadusercli')."\n";
     echo $help;
     die();
 }
@@ -259,7 +259,7 @@ $importid = csv_import_reader::get_new_iid('uploaduser');
 $cir = new csv_import_reader($importid, 'uploaduser');
 $readcount = $cir->load_csv_content($content, $options['encoding'], $options['delimiter']);
 if ($readcount === false) {
-    print_error('csvfileerror', 'tool_uploaduser', '', $cir->get_error());
+    print_error('csvfileerror', 'tool_uploadusercli', '', $cir->get_error());
 } else if ($readcount == 0) {
     print_error('csvemptyfile', 'error', '', $cir->get_error());
 }

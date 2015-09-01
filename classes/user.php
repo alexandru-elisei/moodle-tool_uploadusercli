@@ -24,8 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_capability('moodle/user:delete', context_system::instance());
-
 /**
  * User class.
  *
@@ -311,6 +309,8 @@ class tool_uploadusercli_user {
      */
     public function prepare() {
         global $DB, $CFG;
+        global $UUC_DEFAULTS;
+
 
         uuc_debug_show("Entered prepare.", UUC_DEBUG_LOW, 
                                         $this->debuglevel, "USER");
@@ -327,7 +327,7 @@ class tool_uploadusercli_user {
         if ($this->rawdata['username'] !== clean_param($this->rawdata['username'],
                                                         PARAM_USERNAME)) {
             $this->error('invalidusername', 
-                         new lang_string('invalidusername', 'error'));
+                         new lang_string('invalidusername', 'error', 'username'));
             return false;
         }
 
@@ -338,9 +338,8 @@ class tool_uploadusercli_user {
         if (empty($this->rawdata['mnethostid'])) {
             $this->rawdata['mnethostid'] = $CFG->mnet_localhost_id;
         } else if (!is_numeric($this->rawdata['mnethostid'])) {
-            var_dump($this->rawdata['mnethostid']);
             $this->error('mnethostidnotanumber', 
-                            new lang_string('mnethostidnotanumber', 'error'));
+                            new lang_string('mnethostidnotanumber', 'tool_uploadusercli'));
             return false;
         }
 
@@ -366,16 +365,16 @@ class tool_uploadusercli_user {
                                 new lang_string('usernotdeletedoff', 'error'));
                 return false;
             } else if ($this->isremote) {
-                $this->error('remoteusercannotdelete', 
-                            new lang_string('remoteusercannotdelete', 'error'));
+                $this->error('usernotdeletedremote', 
+                            new lang_string('usernotdeletedremote', 'tool_uploadusercli'));
                 return false;
             } else if (is_siteadmin($this->existing->id)) {
                 $this->error('usernotdeletedadmin', 
                             new lang_string('usernotdeletedadmin', 'error'));
                 return false;
             } else if ($this->rawdata['username'] === 'guest') {
-                $this->error('guestnoeditprofileother', 
-                        new lang_string('guestnoeditprofileother', 'error'));
+                $this->error('usernotdeletedguest', 
+                        new lang_string('usernotdeletedguest', 'tool_uploadusercli'));
                 return false;
             }
             $this->do = self::DO_DELETE;
@@ -388,8 +387,8 @@ class tool_uploadusercli_user {
  
         // Validate id field.
         if (isset($this->rawdata['id']) && !is_numeric($this->rawdata['id'])) {
-            $this->error('useridnotanumber', new lang_string('useridnotanumber',
-                'error'));
+            $this->error('useridnotanumber', 
+                    new lang_string('useridnotanumber', 'tool_uploadusercli'));
             return false;
         }
 
@@ -399,8 +398,8 @@ class tool_uploadusercli_user {
         // Checking mandatory fields.
         foreach (self::$mandatoryfields as $key => $field) {
             if (!isset($this->rawdata[$field])) {
-                $this->error('missingfield', new lang_string('missingfield',
-                    'error', $field));
+                $this->error('missingfield', 
+                        new lang_string('missingfield', 'error', $field));
                 return false;
             }
         }
@@ -409,19 +408,27 @@ class tool_uploadusercli_user {
         if ($this->existing) {
             if (!$this->can_update() &&
             $this->mode != tool_uploadusercli_processor::MODE_CREATE_ALL) {
-                $this->error('userexistsupdatenotallowed',
-                    new lang_string('userexistsupdatenotallowed', 'error'));
+                $this->error('usernotupdatedoff',
+                    new lang_string('usernotupdatedoff', 'tool_uploadusercli'));
                 return false;
             }
         } else {
-            // If I cannot create the course, or I'm in update-only mode and I'm 
-            // not renaming
-            if (!$this->can_create() || 
-                    ($this->mode === tool_uploadusercli_processor::MODE_UPDATE_ONLY &&
-                    !isset($this->rawdata['oldusername']))) {
-
-                $this->error('usernotexistscreatenotallowed',
-                    new lang_string('usernotexistscreatenotallowed', 'error'));
+            // If I cannot create the course.
+            if (!$this->can_create() && !isset($this->rawdata['oldusername'])) {
+                if ($this->isremote) {
+                    $this->error('usernotcreatedremote',
+                        new lang_string('usernotcreatedremote', 'tool_uploadusercli'));
+                } else {
+                    $this->error('usernotcreatedoff',
+                        new lang_string('usernotcreatedoff', 'tool_uploadusercli'));
+                }
+                return false;
+            }
+            // If I'm in update only mode and I'm not renaming.
+            if ($this->mode === tool_uploadusercli_processor::MODE_UPDATE_ONLY &&
+                        !isset($this->rawdata['oldusername'])) {
+                $this->error('usernotcreatedoff',
+                    new lang_string('usernotcreatedoff', 'tool_uploadusercli'));
                 return false;
             }
         }
@@ -449,7 +456,7 @@ class tool_uploadusercli_user {
         if (!empty($finaldata->oldusername)) {
             if ($this->existing) {
                 $this->error('usernotrenamedexists',
-                    new lang_string('usernotrenamedexists',  'error'));
+                            new lang_string('usernotrenamedexists',  'error'));
                 return false;
             }
 
@@ -461,15 +468,15 @@ class tool_uploadusercli_user {
 
             if (!$this->can_update()) {
                 $this->error('usernotupdatederror', 
-                    new lang_string('usernotupdatederror', 'error'));
+                            new lang_string('usernotupdatederror', 'error'));
                 return false;
             } else if (!$this->existing) {
                 $this->error('usernotrenamedmissing',
-                    new lang_string('usernotrenamedmissing', 'error'));
+                            new lang_string('usernotrenamedmissing', 'error'));
                 return false;
             } else if (!$this->can_rename()) {
                 $this->error('usernotrenamedoff',
-                    new lang_string('usernotrenamedoff', 'error'));
+                            new lang_string('usernotrenamedoff', 'error'));
                 return false;
             }
 
@@ -478,15 +485,16 @@ class tool_uploadusercli_user {
             uuc_debug_show("Renaming queued.", UUC_DEBUG_LOW,
                                                     $this->debuglevel, "USER");
 
-            $this->set_status('userrenamed', new lang_string('userrenamed', 
-                'tool_uploadusercli', array('from' => $oldname, 'to' => $finaldata->name)));
+            $this->set_status('userrenamed', 
+                    new lang_string('userrenamed', 'tool_uploadusercli', 
+                    array('from' => $oldusername, 'to' => $finaldata->username)));
         }
 
         // Do not update admin and guest account through the csv.
         if ($this->existing) {
             if (is_siteadmin($this->existing)) {
                 $this->error('usernotupdatedadmin',
-                    new lang_string('usernotupdatedadmin',  'tool_uploadusercli'));
+                    new lang_string('usernotupdatedadmin',  'error'));
                 return false;
             } else if ($this->existing->username === 'guest') {
                 $this->error('guestnoeditprofileother',
@@ -534,8 +542,8 @@ class tool_uploadusercli_user {
                 break;
             case tool_uploadusercli_processor::MODE_UPDATE_ONLY:
                 if (!$this->existing) {
-                    $this->error('usernotexistcannotcreate',
-                        new lang_string('usernotexistcannotcreate', 'tool_uploadusercli'));
+                    $this->error('usernotcreatedoff',
+                        new lang_string('usernotcreatedoff', 'tool_uploadusercli'));
                     return false;
                 }
                 break;
@@ -550,8 +558,8 @@ class tool_uploadusercli_user {
                 break;
             default:
                 // O_o Huh?! This should really never happen here!
-                $this->error('unknownimportmode', 
-                    new lang_string('unknownimportmode', 'tool_uploadusercli'));
+                $this->error('unknownuploadmode', 
+                    new lang_string('unknownuploadmode', 'tool_uploadusercli'));
                 return false;
         }
 
@@ -561,9 +569,9 @@ class tool_uploadusercli_user {
             uuc_debug_show("Getting final update data.", 
                                     UUC_DEBUG_LOW, $this->debuglevel, "USER");
 
-            $missingonly = ($updatemode === tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
+            $missingonly = ($this->updatemode === tool_uploadusercli_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
             $finaldata = $this->get_final_update_data($finaldata, $this->existing,
-                                               $this->defaults, $missingonly);
+                                               $UUC_DEFAULTS, $missingonly);
             if (!$finaldata) {
                 $this->error('usernotupdatederror', 
                             new lang_string('usernotupdatederror', 'error'));
@@ -613,8 +621,6 @@ class tool_uploadusercli_user {
         }
         $this->processstarted = true;
 
-        print "Action queued: $this->do\n";
-
         if ($this->do === self::DO_DELETE) {
 
             uuc_debug_show("Deleting.", UUC_DEBUG_LOW,
@@ -629,7 +635,7 @@ class tool_uploadusercli_user {
 
             if (!$success) {
                 $this->error('usernotdeletederror',
-                    new lang_string('usernotdeletederror', 'error'));
+                    new lang_string('usernotdeletederror', 'tool_uploadusercli'));
                 return false;
             }
 
@@ -649,7 +655,7 @@ class tool_uploadusercli_user {
             if ($this->needpasswordchange) {
                 set_user_preference('auth_forcepasswordchange', 1, $this->finaldata);
                 $this->set_status('forcepasswordchange', 
-                                    new lang_string('forcepasswordchange'));
+                        new lang_string('forcepasswordchange', 'tool_uploadusercli'));
             }
             if ($this->finaldata->password === 'to be generated') {
                 set_user_preference('create_password', 1, $this->finaldata);
@@ -661,7 +667,7 @@ class tool_uploadusercli_user {
                 user_update_user($this->finaldata, false, false);
             } catch (Exception $e) {
                 $this->error('usernotupdatederror',
-                    new lang_string('usernotupdatederror', 'tool_uploadusercli'));
+                    new lang_string('usernotupdatederror', 'error'));
                 return false;
             }
 
@@ -710,7 +716,7 @@ class tool_uploadusercli_user {
         //var_dump($existingdata);
 
         // Changing auth information.
-        if (!empty($existingdata->auth) && $data->auth) {
+        if (isset($existingdata->auth) && isset($data->auth)) {
             $existingdata->auth = $data->auth;
             if ($data->auth === 'nologin') {
                 $this->dologout = true;
@@ -726,7 +732,7 @@ class tool_uploadusercli_user {
             }
 
             // Field not present in the CSV file.
-            if (!$data->$field && !$existingdata->$field) {
+            if (!isset($data->$field) && !isset($existingdata->$field)) {
                 if ($this->updatemode === tool_uploadusercli_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS && !empty($UUC_DEFAULTS[$field])) {
                     $data->$field = $UUC_DEFAULTS[$field];
                 } else {
@@ -748,7 +754,7 @@ class tool_uploadusercli_user {
                 }
             }
 
-            if ($existingdata->$field !== $data->$field) {
+            if (!isset($data->$field) || $existingdata->$field !== $data->$field) {
                 if ($field === 'email') {
                     if ($DB->record_exists('user', array('email' => $data->email))) {
                         if ($this->importoptions['noemailduplicates']) {
@@ -762,7 +768,7 @@ class tool_uploadusercli_user {
                     }
                     if (!validate_email($data->email)) {
                         $this->set_status('invalidemail', 
-                                    new lang_string('invalidemail', 'warning'));
+                                    new lang_string('invalidemail'));
                     }
                 } else if ($field === 'lang') {
                     if (empty($data->lang)) {
@@ -770,7 +776,7 @@ class tool_uploadusercli_user {
                         continue;
                     } else if (clean_param($data->lang, PARAM_LANG) === '') {
                         $this->set_status('cannotfindlang',
-                                    new lang_string('cannotfindlang', 'error'));
+                                    new lang_string('cannotfindlang', 'error', $data->lang));
                         continue;
                     }
                 }
@@ -785,7 +791,7 @@ class tool_uploadusercli_user {
         try {
             $auth = get_auth_plugin($existingdata->auth);
         } catch (Exception $e) {
-            $this->error('userautherror', new lang_string('userautherror', 'error'));
+            $this->error('userautherror', new lang_string('userautherror', 'error', s($existingdata->auth)));
             return false;
         }
 
@@ -865,13 +871,13 @@ class tool_uploadusercli_user {
         try {
             $auth = get_auth_plugin($data->auth);
         } catch (Exception $e) {
-            $this->error('exceptiongettingauthplugin', 
-                        new lang_string('exceptiongettingauthplugin', 'error'));
+            $this->error('userautherror', 
+                        new lang_string('userautherror', 'error', s($data->auth)));
             return false;
         }
         if (!isset($UUC_SUPPORTEDAUTHS[$data->auth])) {
             $this->set_status('userauthunsupported', 
-                            new lang_string('userauthunsupported', 'error'));
+                            new lang_string('userauthunsupported', 'warning'));
         }
         $isinternalauth = $auth->is_internal();
 
@@ -887,7 +893,7 @@ class tool_uploadusercli_user {
         }
         if (!validate_email($data->email)) {
             $this->set_status('invalidemail', 
-                                    new lang_string('invalidemail', 'warning'));
+                             new lang_string('invalidemail'));
         }
 
         if (empty($data->lang)) {
@@ -978,8 +984,7 @@ class tool_uploadusercli_user {
 
                 if (empty($cohort)) {
                     $this->set_status("unknowncohort", new lang_string(
-                        'unknowncohort', 'tool_uploadusercli'
-                    ));
+                                        'unknowncohort', 'core_cohort', $cohort));
                 } else if (!empty($cohort->component)) {
                     // Cohorts synced with external sources need not be modified
                     $cohorts[$addcohort] = get_string('external', 'core_cohort');
@@ -999,11 +1004,11 @@ class tool_uploadusercli_user {
                                     $e->getMessage(), 'tool_uploadusercli'));
                         return false;
                     }
-                    $this->set_status('cohortcreateduseradded', new lang_string(
-                            'cohortcreateduseradded', 'tool_uploadusercli'));
+                    $this->set_status('cohortcreated', new lang_string(
+                            'cohortcreated', 'tool_uploadusercli'));
                 } else {
-                    $this->set_status('erroraddingtocohort', new lang_string(
-                                'erroraddingtocohort', 'tool_uploadusercli'));
+                    $this->set_status('cohortnotcreatederror', new lang_string(
+                                'cohortnotcreatederror', 'tool_uploadusercli'));
                 }
             }
         }
@@ -1125,7 +1130,7 @@ class tool_uploadusercli_user {
                         $addtype = $this->rawdata['type' . $i];
                         if ($addtype < 1 or $addtype > 3) {
                             $this->set_status('typeerror',
-                                new lang_string('typeerror', 'error'));
+                                new lang_string('typeerror', 'tool_uploadusercli'));
                             continue;
                         } else {
                             $roleid = $this->rawdata['type' . $i];
@@ -1150,7 +1155,7 @@ class tool_uploadusercli_user {
                                 $status = ENROL_USER_SUSPENDED;
                             } else {
                                 $this->set_status('unknownenrolstatus',
-                                    new lang_string('unknownenrolstatus', 'error'));
+                                    new lang_string('unknownenrolstatus', 'tool_uploadusercli'));
                             }
                         }
 
@@ -1173,21 +1178,23 @@ class tool_uploadusercli_user {
                             $manual->enrol_user($coursecache, $this->finaldata->id,
                                                 $roleid, $now, $timeend, $status);
                         } catch (Exception $e) {
-                            $this->error('errorenrolling',
-                                new lang_string('errorenrolling', 'error'));
+                            $this->error('usernotenrollederror',
+                                new lang_string('usernotenrollederror', 'tool_uploadusercli'));
                             return false;
                         }
                     }
                 }
 
                 // Add to group.
-                $groupname = $this->rawdata['group' . $i];
+                if (isset($this->rawdata['group' . $i])) {
+                    $groupname = isset($this->rawdata['group' . $i]);
+                }
 
                 if (!empty($groupname)) {
                     // Enrol into course before adding to group.
                     if (!is_enrolled($coursecontext, $this->finaldata->id)) {
-                        $this->error('addtogroupnotenrolled',
-                            new lang_string('addtogroupnotenrolled', '',
+                        $this->error('usernotenrollederror',
+                            new lang_string('usernotenrollederror', '',
                                             $groupname, 'error'));
                         return false;
                     }
@@ -1221,7 +1228,7 @@ class tool_uploadusercli_user {
                         } else {
                             $this->error('unknowngroup',
                                 new lang_string('unknowngroup', 'error',
-                                s($groupname)));
+                                                s($groupname)));
                             return false;
                         }
                     }
@@ -1232,7 +1239,7 @@ class tool_uploadusercli_user {
                         groups_add_member($gid, $this->finaldata->id);
                     } catch (moodle_exception $e) {
                         $this-error('addedtogroupnot',
-                            new lang_string('addedtogroupnot', 'error'));
+                            new lang_string('addedtogroupnot', '', s($gname), 'error'));
                         return false;
                     }
                 }
