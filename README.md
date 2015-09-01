@@ -1,18 +1,11 @@
-moodle-tool_uploadusercli
+## moodle-tool_uploadusercli
 
-
-THIS IS BETA SOFTWARE. NOT ALL FUNCTIONALITY IS PRESENT.
-
-
-Description
-
+#### Description
 moodle-tool_uploadusercli is a plugin for Moodle to upload users from a CSV
 (comma separated values) file using the cli, in much the same way that 
 admin/tool/uploadcourse/cli works for uploading courses.
 
-
-Installation
-
+#### Installation
 This plugin has been tested to work with Moodle 2.9. There are no guarantess it
 will work with earlier versions.
 
@@ -21,7 +14,7 @@ https://docs.moodle.org/29/en/Installing_plugins
 
 The basic process involves cloning the repository into MOODLE_ROOT_DIRECTORY/admin/tool/uploadusercli:
 
-git clone https://github.com/alexandru-elisei/moodle-tool_uploadusercli.git MOODLE_ROOT_DIRECTORY/admin/tool/uploadusercli,
+    git clone https://github.com/alexandru-elisei/moodle-tool_uploadusercli.git MOODLE_ROOT_DIRECTORY/admin/tool/uploadusercli,
 
 replacing MOODLE_ROOT_DIRECTORY with the actual moodle installation root
 directory path.
@@ -32,23 +25,21 @@ location.
 If you are cloning the git repository, keep in mind that this also creates a
 .git directory.
 
-
-Usage
-
+#### Usage
 Basic usage:
 
-php uploadusercli.php --mode=createnew --file=csv_file.csv
+    php uploadusercli.php --mode=createnew --file=csv_file.csv
 
 The script supports all the modes and actions that are available in the web
 interface form. For a complete list of options and their syntax please use 
 the following command:
 
-php uploadusercli.php --help
+    php uploadusercli.php --help
 
 The CSV file has the same format CSV used to upload users from the web 
 interface. More details can be found here: https://docs.moodle.org/29/en/Upload_users
 
-
+#### Copyright
 Copyright (C) Alexandru Elisei 2015 and beyond, All right reserved.
 
 moodle-tool_uploadusercli is free software; you can redistribute it and/or
