@@ -34,7 +34,6 @@ require_once($CFG->dirroot . '/user/lib.php');
 require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/cohort/lib.php');
 require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
-require_once('../classes/debug.php');
 require_once('../locallib.php');
 
 // Standard csv fields. 
@@ -65,6 +64,11 @@ $UUC_DEFAULTS = array(
 
 // Supported authentication plugins.
 $UUC_SUPPORTEDAUTHS = uu_supported_auths();
+
+// Debug levels.
+define("UUC_DEBUG_NONE",  0);
+define("UUC_DEBUG_LOW",  1);
+define("UUC_DEBUG_VERBOSE", 2);
 
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(
