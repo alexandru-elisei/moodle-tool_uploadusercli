@@ -34,8 +34,6 @@ require_once($CFG->dirroot . '/user/lib.php');
 require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/cohort/lib.php');
 require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
-require_once('../classes/debug.php');
-require_once('../locallib.php');
 
 // Standard csv fields. 
 $UUC_STD_FIELDS = array('id', 'username', 'email',
@@ -81,7 +79,6 @@ list($options, $unrecognized) = cli_get_params(array(
     'allowsuspends' => true,
     'noemailduplicates' => true,
     'standardise' => true,
-    'debuglevel' => 'none',
     'forcepasswordchange' => 'none',
 ),
 array(
@@ -111,7 +108,6 @@ Options:
 --updatepassword           Update existing user password: false (default) or true
 --allowsuspends            Allow suspending or activating of accounts: true (default) false
 --noemailduplicates        Do not allow duplicate email addresses: true (default) or false
---debuglevel               Debug level: none (default), low or verbose
 --forcepasswordchange      Force users to reset their passwords: none (default), weak, all
 
 Example:
@@ -217,20 +213,6 @@ if (!isset($options['forcepasswordchange']) || !isset($forcepasswordchanges[$opt
     die();
 }
 $processoroptions['forcepasswordchange'] = $forcepasswordchanges[$options['forcepasswordchange']];
-
-// Check debug level.
-$debuglevels = array(
-    'none' => UUC_DEBUG_NONE,
-    'low' => UUC_DEBUG_LOW,
-    'verbose' => UUC_DEBUG_VERBOSE,
-);
-
-if (!isset($options['debuglevel']) || !isset($debuglevels[$options['debuglevel']])) {
-    echo get_string('invaliddebuglevel', 'tool_uploadusercli')."\n";
-    echo $help;
-    die();
-}
-$processoroptions['debuglevel'] = $debuglevels[$options['debuglevel']];
 
 // File.
 if (!empty($options['file'])) {

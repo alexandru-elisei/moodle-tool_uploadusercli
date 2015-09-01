@@ -98,9 +98,6 @@ class tool_uploadusercli_processor {
      */
     const FORCE_PASSWORD_CHANGE_ALL = 13;
 
-    /** @var int debug level. */
-    protected $debuglevel;
-
     /** @var int processor mode. */
     protected $mode;
 
@@ -194,22 +191,12 @@ class tool_uploadusercli_processor {
         if (isset($options['forcepasswordchange'])) {
             $this->forcepasswordchange = $options['forcepasswordchange'];
         }
-        $this->debuglevel = UUC_DEBUG_NONE;
-        if (isset($options['debuglevel'])) {
-            $this->debuglevel = $options['debuglevel'];
-        }
-
-        uuc_debug_show("Entered constructor.", UUC_DEBUG_LOW,
-                                                $this->debuglevel, "PROCESSOR");
 
         $this->cir = $cir;
         $phonyurl = new moodle_url('/admin/tool/uploaduser/index.php');
         $this->columns = uu_validate_user_upload_columns($this->cir, 
                                 $UUC_STD_FIELDS, $UUC_PRF_FIELDS, $phonyurl);
         $this->reset();
-
-        uuc_debug_show("New class created", UUC_DEBUG_VERBOSE,
-                        $this->debuglevel, "PROCESSOR", "__construct", $this);
     }
 
     /**
@@ -220,9 +207,6 @@ class tool_uploadusercli_processor {
      */
     public function execute($tracker = NULL) {
         global $DB;
-
-        uuc_debug_show("Entered execute.", UUC_DEBUG_LOW,
-                                                $this->debuglevel, "PROCESSOR");
 
         if ($this->processstarted) {
             throw new moodle_exception('process_already_started', 'error');
@@ -254,10 +238,6 @@ class tool_uploadusercli_processor {
             $user = $this->get_user($data);
             if ($user->prepare()) {
                 if ($user->proceed()) {
-
-                    uuc_debug_show("User proceed success.", 
-                                UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
-
                     $status = $user->get_status();
                     if (array_key_exists('useradded', $status)) {
                         $created++;
@@ -266,27 +246,15 @@ class tool_uploadusercli_processor {
                     } else if (array_key_exists('userdeleted', $status)) {
                         $deleted++;
                     }
-
-                    uuc_debug_show("User proceeded.", UUC_DEBUG_VERBOSE,
-                        $this->debuglevel, "PROCESSOR", "execute", $status);
-
                     $data = array_merge($data, $user->get_finaldata(), 
                     array('id' => $user->get_id()));
                     $tracker->output($this->linenum, true, $status, $data);
                 } else {
-
-                    uuc_debug_show("User proceed failed.",
-                                UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
-
                     $errors++;
                     $tracker->output($this->linenum, false,
                                     $user->get_errors(), $data);
                 }
             } else {
-
-                uuc_debug_show("User prepare failed.",
-                                UUC_DEBUG_LOW, $this->debuglevel, "PROCESSOR");
-
                 $errors++;
                 $tracker->output($this->linenum, false, $user->get_errors(), $data);
             }
@@ -312,7 +280,6 @@ class tool_uploadusercli_processor {
             'allowsuspends'         => $this->allowsuspends,
             'noemailduplicates'     => $this->noemailduplicates,
             'forcepasswordchange'   => $this->forcepasswordchange,
-            'debuglevel'            => $this->debuglevel,
         );
         return new tool_uploadusercli_user($this->mode, $this->updatemode,
                                                         $data, $importoptions);
