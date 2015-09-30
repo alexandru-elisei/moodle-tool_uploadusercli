@@ -45,7 +45,7 @@ $UUC_STD_FIELDS = array('id', 'username', 'email',
     'institution', 'department', 'idnumber', 'skype', 'lastname',
     'msn', 'aim', 'yahoo', 'icq', 'phone1', 'phone2', 'address',
     'url', 'description', 'descriptionformat', 'password',
-    'auth',        
+    'auth',
     'oldusername', // use when renaming users - this is the original username
     'suspended',   // 1 means suspend user account, 0 means activate user account, nothing means keep as is for existing users
     'deleted',     // 1 means delete user
@@ -134,10 +134,9 @@ if ($options['help']) {
 $UUC_STD_FIELDS = array_merge($UUC_STD_FIELDS, get_all_user_name_fields());
 
 // Get profile fields.
-$UUC_PRF_FIELDS = $DB->get_records('user_info_field');
-if ($UUC_PRF_FIELDS) {
-    foreach ($UUC_PRF_FIELDS as $key => $field) {
-        $profilefieldname = 'profile_field_' . $field->shortname;
+if ($proffields = $DB->get_records('user_info_field')) {
+    foreach ($proffields as $key => $proffield) {
+        $profilefieldname = 'profile_field_'.$proffield->shortname;
         $UUC_PRF_FIELDS[] = $profilefieldname;
     }
 }
@@ -149,9 +148,9 @@ $processoroptions = array(
                 core_text::strtolower($options['allowrenames']) == 'true'),
     'standardise' => ($options['standardise'] === true ||
                 core_text::strtolower($options['standardise']) == 'true'),
-    'updatepassword' => ($options['updatepassword'] === true || 
+    'updatepassword' => ($options['updatepassword'] === true ||
                 core_text::strtolower($options['updatepassword']) == 'true'),
-    'allowsuspends' => ($options['allowsuspends'] === true || 
+    'allowsuspends' => ($options['allowsuspends'] === true ||
                 core_text::strtolower($options['allowsuspends']) == 'true'),
     'noemailduplicates' => ($options['noemailduplicates'] === true ||
                 core_text::strtolower($options['noemailduplicates']) == 'true'),
@@ -193,7 +192,7 @@ $processoroptions['updatemode'] = $updatemodes[$options['updatemode']];
 // Check that password creation mode is valid.
 $passwordmodes = array(
     'generate' => tool_uploadusercli_processor::PASSWORD_MODE_GENERATE,
-    'field' => tool_uploadusercli_processor::PASSWORD_MODE_FIELD, 
+    'field' => tool_uploadusercli_processor::PASSWORD_MODE_FIELD,
 );
 
 if (!isset($options['passwordmode']) || !isset($passwordmodes[$options['passwordmode']])) {
