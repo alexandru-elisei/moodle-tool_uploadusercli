@@ -655,8 +655,6 @@ class tool_uploadusercli_user {
         $existingdata->timemodified = time();
         profile_load_data($existingdata);
 
-        //var_dump($existingdata);
-
         // Changing auth information.
         if (isset($existingdata->auth) && isset($data->auth)) {
             $existingdata->auth = $data->auth;

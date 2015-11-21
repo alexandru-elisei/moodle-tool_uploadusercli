@@ -35,6 +35,9 @@ require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/cohort/lib.php');
 require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 
+core_php_time_limit::raise(60*60*24); // 24 hours should be enough
+raise_memory_limit(MEMORY_HUGE);
+
 // Standard csv fields. 
 $UUC_STD_FIELDS = array('id', 'username', 'email',
     'city', 'country', 'lang', 'timezone', 'mailformat', 'firstname',
