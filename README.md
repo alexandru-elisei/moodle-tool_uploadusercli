@@ -5,6 +5,9 @@ moodle-tool_uploadusercli is a plugin for Moodle to upload users from a CSV
 (comma separated values) file using the cli, in much the same way that 
 admin/tool/uploadcourse/cli works for uploading courses.
 
+#### Dependencies
+This plugin requires the plugin tool_uploaduser installed to function properly.
+
 #### Installation
 This plugin has been tested to work with Moodle 2.6. There are no guarantess it
 will work with earlier versions.
