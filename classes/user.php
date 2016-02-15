@@ -613,20 +613,21 @@ class tool_uploadusercli_user {
                 return false;
             }
 
-            if (!$this->isremote) {
-                $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
-                profile_save_data($this->finaldata);
-            }
-
             if ($this->dologout) {
                 \core\session\manager::kill_user_sessions($this->finaldata->id);
             }
-            
+
             $this->set_status('useraccountupdated', 
                     new lang_string('useraccountupdated', 'tool_uploaduser'));
         }
 
         if ($this->do === self::DO_UPDATE || $this->do === self::DO_CREATE) {
+
+            if (!$this->isremote) {
+                $this->finaldata = uu_pre_process_custom_profile_data($this->finaldata);
+                profile_save_data($this->finaldata);
+            }
+
             $success = $this->add_to_cohort();
             $success = ($success && $this->add_to_egr());
             if (!$success) {
@@ -953,7 +954,6 @@ class tool_uploadusercli_user {
      */
     protected function add_to_egr() {
         global $DB;
-
         foreach ($this->rawdata as $field => $value) {
             if (preg_match('/^sysrole\d+$/', $field)) {
                 $removing = false;
@@ -1006,10 +1006,7 @@ class tool_uploadusercli_user {
 
                 $roles = uu_allowed_roles_cache();
 
-                /*
-                 * DE MUTAT LA MANUALCACHE!!!!!!
-                 */
-
+				// TODO: manualcache
                 if ($instances = enrol_get_instances($courseid, false)) {
                     foreach ($instances as $instance) {
                         if ($instance->enrol === 'manual') {
