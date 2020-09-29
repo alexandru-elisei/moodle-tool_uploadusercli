@@ -990,6 +990,9 @@ class tool_uploadusercli_user {
                     }
                 }
             } else if (preg_match('/^course\d+$/', $field)) {
+                if (empty($value))
+                    continue;
+
                 // Course number.
                 $i = substr($field, 6);
                 $shortname = $value;
